@@ -1,0 +1,17 @@
+---
+title: "11 · Permissions and trust boundaries"
+---
+
+Which components are authorized to change state?
+
+## Concepts
+
+Draw where untrusted inputs cross into model context or into a tool handler. Put access decisions at the tool boundary. Specify least privilege, approval gates for consequential effects, and audit records.
+
+## Study task
+
+Assign the proposer write access to candidate configurations and the evaluator read access to isolated fixtures. Write denial cases for attempted edits to the evaluator and unauthorized promotion requests.
+
+## Deliverable
+
+Submit a data-flow diagram, a capability matrix, and expected test outcomes for each denied write.

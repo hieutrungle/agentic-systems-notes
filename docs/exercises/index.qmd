@@ -1,0 +1,17 @@
+---
+title: "System-design exercises"
+---
+
+Every block has a deliverable. Use these longer exercises to combine its concepts and compare architectural choices.
+
+## Experiment service with approvals
+
+Design a service that runs bounded model-training experiments and lets a human approve promotion of a candidate. Draw the proposer, evaluator, artifact store, and approval authority. Specify what each can read and write. Trace a crash after scoring but before the result is published, and show how two retries converge on one decision. The design passes if an incomplete or stale run cannot promote a candidate.
+
+## Research assistant with citations
+
+Design a literature assistant that answers a question over a fixed corpus and attaches source spans to each factual claim. Compare retrieval followed by one generation with an adaptive loop that can request one more retrieval pass. Specify a fixed test set, what counts as evidence coverage, an unsupported-claim metric, and a cost budget. Include a paper that was corrected after indexing and explain where version validation occurs.
+
+## Capstone design review
+
+Prepare a diagram, explicit invariants, a baseline, a comparable evaluation table, and one failure trace. Explain which design choice the evidence supports and what you would measure next. The [capstone block](../curriculum/14-capstone.qmd) defines the final submission.

@@ -1,0 +1,15 @@
+---
+title: "Literature"
+---
+
+## Reviews
+
+- [Control, tool use, and feedback](control-and-feedback.qmd) compares three ways an agent can change its behavior.
+- [Evidence from agent benchmarks](agent-evaluation.qmd) examines how to interpret benchmark results and transfer them to a system design.
+
+## Paper notes
+
+- [ReAct](papers/yao2023react.qmd) explains reasoning, actions, and observations as parts of a single trajectory.
+- [AgentBench](papers/liu2024agentbench.qmd) examines multi-environment evaluation and failure categories.
+
+The [references](references.qmd) list the source records used throughout the course.

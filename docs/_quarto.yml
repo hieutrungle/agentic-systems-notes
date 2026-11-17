@@ -1,0 +1,44 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - assets/animations/autoresearch-loop.mp4
+  render:
+    - index.qmd
+    - curriculum/*.qmd
+    - literature/**/*.qmd
+    - labs/*.qmd
+    - exercises/*.qmd
+    - case-studies/*.qmd
+
+website:
+  title: Agentic Systems Notes
+  page-navigation: true
+  navbar:
+    left:
+      - text: Curriculum
+        href: curriculum/index.qmd
+      - text: Literature
+        href: literature/index.qmd
+      - text: Labs
+        href: labs/index.qmd
+      - text: Design exercises
+        href: exercises/index.qmd
+      - text: AutoResearch
+        href: case-studies/autoresearch.qmd
+  sidebar:
+    - id: curriculum
+      title: Curriculum
+      style: docked
+      contents:
+        - curriculum/index.qmd
+        - auto: "curriculum/[0-9]*.qmd"
+
+bibliography: references.bib
+execute:
+  enabled: false
+format:
+  html:
+    theme: flatly
+    toc: true
+    link-citations: true

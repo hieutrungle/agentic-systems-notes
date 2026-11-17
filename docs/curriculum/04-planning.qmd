@@ -1,0 +1,17 @@
+---
+title: "04 · Planning and replanning"
+---
+
+What makes a plan worth maintaining across observations?
+
+## Concepts
+
+Compare decomposition, receding-horizon planning, and reacting after each observation. The cost of revising a plan belongs in the comparison, alongside the number of useful actions it yields [@yao2023react].
+
+## Study task
+
+Compare a fixed proposal schedule with a schedule that revises priorities after an unexpected regression. Keep both on the same trial budget.
+
+## Deliverable
+
+Write a planning policy, one revision trigger, and a trace where the fixed schedule performs better.

@@ -1,0 +1,17 @@
+---
+title: "02 · Tool interfaces and structured outputs"
+---
+
+How does a controller turn a proposed action into a validated operation?
+
+## Concepts
+
+Define tool names, argument shapes, and typed outcomes. Schema validation checks shape, and the dispatcher checks access and resource identity. Toolformer studies learned tool invocation [@schick2023toolformer].
+
+## Study task
+
+Run the [tool contract lab](../labs/index.qmd#a-read-only-tool-contract). Add an extra argument to the lookup request and trace the validation error. Sketch the schema for registering a candidate configuration.
+
+## Deliverable
+
+Submit a contract with examples of a successful operation, invalid arguments, denial, and an absent record. State which cases are retryable.

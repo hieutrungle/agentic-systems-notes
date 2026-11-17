@@ -1,0 +1,11 @@
+---
+title: "Agentic Systems Notes"
+---
+
+A 14-block study curriculum on how to design, evaluate, and operate AI systems that use tools and adapt to observations. The running question is **when does giving a system more control improve the result enough to justify the added cost and failure modes?**
+
+Start with the [curriculum](curriculum/index.qmd) for the study sequence, or run the [Python labs](labs/index.qmd) to inspect a typed tool boundary and an experiment loop. The [AutoResearch case study](case-studies/autoresearch.qmd) connects the two to a research workflow with measurable outcomes.
+
+## How to study
+
+For each block, identify the decision the system must make, draw its state and permissions, and produce the requested artifact. Keep your baselines, assumptions, and failure traces alongside the result. Use the [literature reviews](literature/index.qmd) to see which conclusions come from published experiments and which remain design hypotheses.

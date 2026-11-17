@@ -1,0 +1,17 @@
+---
+title: "12 · Reliability and delivery"
+---
+
+How does the system resume accurately when infrastructure fails?
+
+## Concepts
+
+Choose deadlines, retry policies, idempotency keys, and atomic state changes. Design for duplicates and ambiguous outcomes before adding parallel execution.
+
+## Study task
+
+Trace a worker crash after scoring and before publishing its report. Show how two attempts with the same trial ID converge on a single recorded result.
+
+## Deliverable
+
+Submit a failure matrix and a release plan with success, timeout, and rollback criteria.

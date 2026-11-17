@@ -1,0 +1,17 @@
+---
+title: "Paper note · AgentBench"
+---
+
+**Source** [@liu2024agentbench]. The citation points to arXiv revision 3.
+
+## Question and method
+
+How reliably can language models complete tasks as agents across different interactive environments? The authors use eight environments with task-specific observations and action interfaces, and evaluate complete trajectories.
+
+## Evidence and limits
+
+The paper analyzes failures such as invalid formatting, invalid actions, and turn-limit exhaustion. These categories can guide a diagnosis, and their observed frequency depends on the benchmark's environment, agent adapter, and turn limit. Repeated runs under a changed adapter may therefore answer a different evaluation question.
+
+## Follow-up
+
+Keep the model, task set, and turn budget fixed. Compare two representations of the same tool schema. Check whether lower invalid-action rates correspond to improved terminal success.

@@ -1,0 +1,25 @@
+---
+title: "Python labs"
+---
+
+Run these commands from the repository root with Python 3.11 or newer.
+
+## A read-only tool contract
+
+```bash
+python -m labs.tool_contract
+```
+
+The four rows show a successful lookup, an argument type error, an absent record, and an unknown tool. Add a case with an unexpected argument and check that the tool rejects it before any lookup. In a real system, the same dispatch boundary is where you would check caller identity and access to the requested resource.
+
+## The AutoResearch loop
+
+```bash
+python -m labs.autoresearch --budget 4
+```
+
+Rerun with budgets 0 and 2. Compare the winner, its validation score, and its final holdout score. Explain from the trial records why a failed proposal consumes budget without becoming the incumbent. See the [case study](../case-studies/autoresearch.qmd) for the full protocol.
+
+```bash
+python -m unittest discover -s tests -v
+```

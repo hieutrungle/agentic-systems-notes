@@ -1,0 +1,17 @@
+---
+title: "03 · Workflow orchestration"
+---
+
+When should transitions be explicit in the controller?
+
+## Concepts
+
+Use a state machine to define legal transitions, deterministic routing, branch joins, and terminal states. Add timeouts and checkpoints at operations that may fail independently [@anthropic2024effectiveagents].
+
+## Study task
+
+Draw the experiment controller as a transition table with proposed, scored, kept, discarded, and failed outcomes. Decide whether scoring can be retried after a lost response.
+
+## Deliverable
+
+Submit a diagram and a transition table with each trigger, state update, and one recovery invariant.

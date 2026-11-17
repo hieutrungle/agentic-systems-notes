@@ -1,0 +1,9 @@
+---
+title: "Evidence from agent benchmarks"
+---
+
+The relevant unit in an interactive benchmark is often a complete attempt to achieve a goal under a fixed environment and tool budget. An evaluator can separately record terminal outcomes and signals that explain how a run arrived there.
+
+AgentBench evaluates model-driven policies across multiple interactive environments and discusses failure categories including invalid actions and exceeded turn limits [@liu2024agentbench]. ReAct contrasts prompting variants in specific question-answering and interactive environments [@yao2023react]. The former provides breadth across tasks. The latter shows how changing part of a policy can be evaluated within a task.
+
+For the course, record success by task, budget exhaustion, and tool errors. Compare variants on the same tasks and budgets. If a variant fails less often because it receives a more informative action schema, that result supports the interface change in that setting. To study the contribution of the controller itself, give both variants the same schema.

@@ -1,0 +1,22 @@
+---
+title: "Curriculum"
+---
+
+The blocks move from a single decision loop to an evaluated system. Each page defines a study task and an artifact to produce. The [design exercises](../exercises/index.qmd) combine several blocks in one review.
+
+| Block | Topic | Study question |
+|---|---|---|
+| 01 | [Foundations and baselines](01-foundations.qmd) | What changes when a model can observe the consequences of its own actions? |
+| 02 | [Tool interfaces and structured outputs](02-tool-interfaces.qmd) | How does a controller turn a proposed action into a validated operation? |
+| 03 | [Workflow orchestration](03-orchestration.qmd) | When should transitions be explicit in the controller? |
+| 04 | [Planning and replanning](04-planning.qmd) | What makes a plan worth maintaining across observations? |
+| 05 | [Context construction and retrieval](05-context-retrieval.qmd) | Which evidence should enter a model call under a context budget? |
+| 06 | [Memory and durable state](06-memory-state.qmd) | Which information should survive a call, a restart, or a user session? |
+| 07 | [Feedback, verification, and repair](07-feedback.qmd) | What evidence warrants another attempt? |
+| 08 | [Multi-agent coordination](08-multiagent.qmd) | When does splitting roles improve a shared outcome? |
+| 09 | [Tracing, observability, and replay](09-observability.qmd) | What would let another person reconstruct a decision? |
+| 10 | [Evaluation and benchmarking](10-evaluation.qmd) | How can the evaluation attribute a gain to an architectural change? |
+| 11 | [Permissions and trust boundaries](11-trust-boundaries.qmd) | Which components are authorized to change state? |
+| 12 | [Reliability and delivery](12-reliability.qmd) | How does the system resume accurately when infrastructure fails? |
+| 13 | [Automated experimentation](13-autoresearch.qmd) | Can an adaptive experiment policy beat a simple search schedule? |
+| 14 | [Capstone design review](14-capstone.qmd) | What evidence justifies deploying the added autonomy? |

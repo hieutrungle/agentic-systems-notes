@@ -1,0 +1,17 @@
+---
+title: "Paper note · ReAct"
+---
+
+**Source** [@yao2023react]. The citation points to the camera-ready arXiv revision.
+
+## Question and method
+
+Can a policy interleave explicit model-generated reasoning with external actions? The method prompts a language model with examples of trajectories. A trajectory can contain reasoning text, a tool action, and the environment's observation, which becomes context for the next step.
+
+## Evidence and limits
+
+The authors report results on HotpotQA, FEVER, ALFWorld, and WebShop, including comparisons with reasoning-only or acting-only variants in relevant settings. See the paper's method and experiments for the exact prompts and comparisons. Benchmark success reflects the tested action interfaces, observation quality, and prompts. A rationale in a trajectory should be evaluated as part of the policy's observable output.
+
+## Follow-up
+
+In a local synthetic task, compare fixed-order lookups against a policy that chooses the next lookup from the previous result. Use the same read permission and call budget. Score completed tasks and invalid actions separately.

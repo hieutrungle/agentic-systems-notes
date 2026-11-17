@@ -1,0 +1,17 @@
+---
+title: "13 · Automated experimentation"
+---
+
+Can an adaptive experiment policy beat a simple search schedule?
+
+## Concepts
+
+Freeze the scorer and evaluation protocol, choose a search budget, and keep holdout outcomes out of the proposer context. Tie recorded claims to an experiment trace and source version [@karpathy2026autoresearch].
+
+## Study task
+
+Reproduce the [reference trace](../case-studies/autoresearch.qmd#reproduce-the-example). Compare a new policy for selecting integer candidates against the fixed proposal list. Predeclare a dataset family before inspecting the holdout.
+
+## Deliverable
+
+Submit a protocol with a baseline, budget, promotion rule, full trial ledger, and analysis of validation selection effects.

@@ -1,0 +1,60 @@
+---
+title: "AutoResearch"
+---
+
+## Upstream design
+
+Andrej Karpathy's AutoResearch lets a coding agent propose changes to a small language-model training script. Its documented protocol keeps data preparation and evaluation separate from the editable training script, uses a five-minute training budget per trial, and ranks candidates by validation bits per byte [@karpathy2026autoresearch]. Comparable trials still require a consistent runtime environment. Repeated selection on the validation set can favor configurations that happen to perform well on that set.
+
+## Local experiment
+
+The [Python lab](../labs/index.qmd#the-autoresearch-loop) models the selection loop with constant integer predictors over a fixed synthetic dataset. A scripted proposer supplies up to four candidates. The evaluator computes mean absolute error (MAE) on the same validation examples each time. The controller keeps a proposal only when it strictly improves the incumbent and charges one trial per attempt. The holdout is evaluated after selection.
+
+```{mermaid}
+%%| label: fig-selection-loop
+%%| fig-cap: "The controller compares each candidate with the current incumbent before spending the next trial."
+%%| fig-alt: "A baseline enters a budget check. While trials remain, the controller proposes and scores a candidate, then keeps or discards it before returning to the budget check. On exhaustion it evaluates the winner on holdout data."
+flowchart TD
+    B[Score baseline] --> T{Trials remaining?}
+    T -->|Yes| P[Propose candidate]
+    P --> V[Measure validation MAE]
+    V --> I{Strict improvement?}
+    I -->|Yes| K[Update incumbent]
+    I -->|No| D[Retain incumbent]
+    K --> T
+    D --> T
+    T -->|No| H[Score winner on holdout]
+```
+
+```{dot}
+//| file: ../assets/diagrams/autoresearch-boundaries.dot
+//| label: fig-experiment-boundaries
+//| fig-cap: "Components and data ownership in the lab."
+//| fig-alt: "The controller reads candidates from the scripted proposer and requests scores from the evaluator. The evaluator reads validation data and reads holdout data at the end. The controller writes trial decisions to the report."
+```
+
+## Reproduce the example
+
+```bash
+python -m labs.autoresearch --budget 4
+```
+
+The baseline predicts 0 and has validation MAE 3. The four proposals are 2, 1, 3, and 4. The controller accepts 2 and 3. The final predictor is 3, with validation MAE 0.5 and holdout MAE 1.0. This run illustrates selection under a budget. Its four-point holdout is too small to support a claim about generalization.
+
+## Study questions across the course
+
+| Blocks | Examine |
+|---|---|
+| 01–04 | Which decisions belong to the proposer, and which are fixed by the controller? |
+| 05–08 | Which experiment records help the proposer, and would a reviewer justify an additional call? |
+| 09–12 | What needs to be recorded to replay a decision, and what happens if publication or evaluation fails? |
+| 13–14 | Does an adaptive proposer beat a fixed search order under equal budgets on a sealed holdout? |
+
+## Animation
+
+<video controls preload="metadata" style="width: 100%;" aria-label="Two decisions in the AutoResearch lab">
+  <source src="../assets/animations/autoresearch-loop.mp4" type="video/mp4">
+  <a href="../assets/animations/autoresearch-loop.mp4">Download the animation</a>
+</video>
+
+The animation starts with incumbent 0 at validation MAE 3. The first proposal predicts 2 and scores 1, so it becomes the incumbent. The second proposal predicts 1 and scores 2, so the incumbent stays at 2. @fig-selection-loop shows the decision path in full. See the repository's `animations/README.md` for the render command.

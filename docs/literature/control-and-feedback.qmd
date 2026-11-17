@@ -1,0 +1,15 @@
+---
+title: "Control, tool use, and feedback"
+---
+
+When an agent makes a better next decision, it may be because the model acquired a tool-use skill at training time, received a useful observation in the current episode, or retrieved feedback from an earlier attempt. These mechanisms require different baselines.
+
+| Work | Mechanism | Comparison for a local study |
+|---|---|---|
+| Toolformer [@schick2023toolformer] | Train a model on sequences containing calls and their results. | Model with and without access to the same tool at inference time. Control for call count when possible. |
+| ReAct [@yao2023react] | Interleave reasoning and environment interaction during an episode. | Tool-using policy with and without explicit reasoning prompts under a shared interaction budget. |
+| Reflexion [@shinn2023reflexion] | Save verbal feedback for use on later attempts. | Match the number of attempts and compare with feedback memory disabled. |
+
+The comparison column proposes study designs. These experiments would help isolate each mechanism under a shared environment and budget. The original papers use different tasks and model setups, which limits comparisons across their reported scores.
+
+For the [AutoResearch case](../case-studies/autoresearch.qmd), a useful starting question is whether including prior failed trials improves the next proposal. Give both variants the same proposer, candidate space, and budget. Measure the final held-out outcome across tasks.

@@ -1,0 +1,17 @@
+---
+title: "09 · Tracing, observability, and replay"
+---
+
+What would let another person reconstruct a decision?
+
+## Concepts
+
+Record meaningful events with stable run and step IDs, parentage, inputs, outcomes, and resource usage. Use captured observations for replay and carry evidence references when excluding sensitive payloads.
+
+## Study task
+
+Map the trial ledger to ordered events. Replay the decisions after a simulated interruption and identify which facts the current report cannot reconstruct.
+
+## Deliverable
+
+Submit a trace schema, a redaction rule, and the minimum record needed to explain why a candidate was kept.

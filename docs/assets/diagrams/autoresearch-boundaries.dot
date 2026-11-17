@@ -1,0 +1,19 @@
+digraph AutoResearch {
+    graph [rankdir=LR, bgcolor=transparent];
+    node [shape=box, style="rounded,filled", fillcolor="#edf3f7", color="#325167", fontname="sans-serif"];
+    edge [color="#325167", fontname="sans-serif"];
+
+    proposer [label="Scripted proposer"];
+    controller [label="Experiment controller"];
+    evaluator [label="Frozen evaluator"];
+    validation [label="Validation fixture"];
+    holdout [label="Holdout fixture"];
+    report [label="Trial report"];
+
+    proposer -> controller [label=" candidate"];
+    controller -> evaluator [label=" score request"];
+    evaluator -> controller [label=" MAE", constraint=false];
+    evaluator -> validation [label=" each trial"];
+    evaluator -> holdout [label=" final winner"];
+    controller -> report [label=" decisions"];
+}

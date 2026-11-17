@@ -1,0 +1,9 @@
+[project]
+name = "agentic-systems-notes"
+version = "0.1.0"
+description = "Reproducible labs for a curriculum on agentic AI systems"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
