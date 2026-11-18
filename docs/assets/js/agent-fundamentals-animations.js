@@ -1,13 +1,13 @@
 const BASELINE = ["Baseline", "0.842", "2.0 GPU-h", "0"];
 const PENDING = ["Baseline", "0.842", "2.0 GPU-h", "1"];
-const UPDATED = ["Candidate #42", "0.851", "1.4 GPU-h", "0"];
+const UPDATED = ["Candidate from #42", "0.851", "1.4 GPU-h", "0"];
 
 const initialInputs = "Goal: improve validation within 2 GPU-h.\nBaseline: 0.842 · metrics available.";
 const context0 = "Baseline 0.842 · budget 2.0 GPU-h\nNo experiment pending.";
 const proposal0 = "run_experiment(lr = 3e-4, seed = 7)";
 const result1 = "Validation 0.851 · cost 0.6 GPU-h.";
-const context1 = "Incumbent #42 scored 0.851.\nBudget 1.4 GPU-h · no job pending.";
-const proposal1 = "replicate(config = #42, seed = 11)";
+const context1 = "Candidate from #42 scored 0.851.\n1.4 GPU-h unspent · no job pending.";
+const proposal1 = "replicate(config_from_job = 42, seed = 11)";
 
 function runtimeStage(title, node, edge, message, value, detail, state, duration) {
   return { title, tracks: [{ node, edge }], message, value, detail, state, duration };
@@ -27,24 +27,26 @@ const runtimeStages = [
     "The runtime checks the request before authorizing it.", BASELINE, 4100),
   runtimeStage("Authorize the operation", "gate", "gate-executor", "AUTHORIZED ACTION · aᵃᵘᵗʰ₀", proposal0,
     "Authorization binds to these parameters. The executor has yet to submit the job.", BASELINE, 3200),
-  runtimeStage("Submit the job", "executor", null, "EXECUTED ACTION · u₀", "Job #42 submitted.",
-    "The scheduler now has a job. The runtime records one pending experiment.", PENDING, 2650),
-  runtimeStage("Run the experiment", "environment", "executor-environment", "Environment · x₀ → x₁", "Job #42 running → complete.",
-    "Training runs in the environment. It produces a validation score and a compute charge.", PENDING, 2850),
-  runtimeStage("Receive the result", "observation", "environment-observation", "Observation · o₁", result1,
+  runtimeStage("Dispatch the authorized request", "executor", null, "Dispatch attempt", "Send the approved request to the scheduler.",
+    "The runtime is waiting for evidence that the scheduler accepted the request.", BASELINE, 2700),
+  runtimeStage("Scheduler accepts job #42", "environment", "executor-environment", "Applied operation · u₀", "The scheduler enqueues job #42.",
+    "The acknowledgement lets the runtime record one pending job.", PENDING, 3100),
+  runtimeStage("Job #42 finishes", "environment", null, "Environment · x₀ → x₁", "Job #42 runs and completes.",
+    "The training job produces a validation score and a compute charge.", PENDING, 2400),
+  runtimeStage("Receive score 0.851 and cost 0.6 GPU-h", "observation", "environment-observation", "Observation · o₁", result1,
     "The result travels back. The runtime has yet to reconcile its state.", PENDING, 3200),
-  runtimeStage("Update state and check for stop", "update", "observation-update", "State update · z₁",
-    "Keep candidate #42. Charge 0.6 GPU-h.\nD(…) → continue.",
+  runtimeStage("Record the incumbent and continue", "update", "observation-update", "State update · z₁",
+    "Keep the candidate from #42. Charge 0.6 GPU-h.\nD(…) → continue.",
     "The controller records the new incumbent and clears the pending job.", UPDATED, 3500),
   runtimeStage("Feed the update into the next turn", "inputs", "feedback", "Feedback · z₁ and o₁", context1,
     "The observation changes the information available for the next decision.", UPDATED, 3800),
   runtimeStage("Construct the second context", "context", "inputs-context", "Constructed context · c₁", context1,
     "The policy now has a measured improvement and a smaller remaining budget.", UPDATED, 3100),
-  runtimeStage("Propose a different action", "policy", "context-policy", "PROPOSED ACTION · ã₁", proposal1,
-    "Replicate the improved configuration with a new seed. This second proposal has not been authorized or run.", UPDATED, 3700),
-  runtimeStage("Feedback changed the trajectory", "policy", null, "Feedback changed the trajectory",
-    "o₁ changed z₁ → z₁ changed c₁ → c₁ changed ã₁.",
-    "The architectural shift is delegated control over a trajectory.", UPDATED, 3200),
+  runtimeStage("Propose replication after the validation gain", "policy", "context-policy", "Proposed action · ã₁", proposal1,
+    "Check whether the gain repeats with a new seed. Authorization comes next.", UPDATED, 3700),
+  runtimeStage("Feedback changed the next proposal", "policy", null, "Same goal and budget, different result",
+    "A gain prompts replication. A flat or worse score could prompt a different learning rate.",
+    "The result changes the policy's choice within the same runtime limits.", UPDATED, 5100),
 ];
 
 const fixedTrials = [["A", "0.81"], ["B", "0.79"], ["C", "0.83"]];
@@ -83,12 +85,12 @@ function comparisonStages() {
     );
 
     if (trial < fixedTrials.length) {
-      stages.push(comparisonStage("Choose trial " + (trial + 1), "choose", null, "choose", "feedback",
+      stages.push(comparisonStage("Advance the list and choose adaptive trial " + (trial + 1), "run", null, "choose", "feedback",
         trial, trial + 1, [trial, trial], fixedTrials[trial][0] + " was chosen before execution.", choices[trial], 3600));
     }
   }
 
-  stages.push(comparisonStage("Trial cap reached — stop and select", "end", "record-end", "end", "update-end",
+  stages.push(comparisonStage("Both stop at three trials and select a winner", "end", "record-end", "end", "update-end",
     3, 3, [2, 1], "Stop at three trials and select C (0.83).",
     "Stop at three trials and select B′ (0.84).", 3200));
 
@@ -137,10 +139,10 @@ function runtimeReadout(root) {
       "context-policy": nextTurn ? "c₁ · score 0.851, budget 1.4 GPU-h" : "c₀ · score 0.842, budget 2.0 GPU-h",
       "policy-gate": "ã₀ · lr 3e-4, seed 7",
       "gate-executor": "aᵃᵘᵗʰ₀ · lr 3e-4, seed 7",
-      "executor-environment": "u₀ · submit job #42",
+      "executor-environment": "Authorized request · lr 3e-4, seed 7",
       "environment-observation": "o₁ · score 0.851, cost 0.6 GPU-h",
       "observation-update": "o₁ · result for job #42",
-      feedback: "z₁, o₁ · incumbent #42, budget 1.4 GPU-h",
+      feedback: "z₁, o₁ · candidate from #42, 1.4 GPU-h unspent",
     };
     const packet = packets[stage.tracks[0].edge];
     transfer.textContent = packet ? "Packet · " + packet : "";
@@ -301,6 +303,26 @@ function mountAnimation(root, stages, readout) {
   renderStage();
   controls.hidden = false;
 }
+
+function mountLessonToc() {
+  const disclosure = document.querySelector(".agent-lesson-toc");
+  const sections = document.querySelectorAll("#TOC > ul > li > a[href^='#']");
+  if (!disclosure || !sections.length) return;
+
+  const list = document.createElement("ul");
+  for (const section of sections) {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = section.getAttribute("href");
+    link.textContent = section.textContent;
+    item.append(link);
+    list.append(item);
+  }
+  disclosure.append(list);
+  disclosure.hidden = false;
+}
+
+mountLessonToc();
 
 for (const root of document.querySelectorAll("[data-agent-animation]")) {
   if (root.dataset.agentAnimation === "runtime") {
