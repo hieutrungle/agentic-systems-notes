@@ -15,3 +15,8 @@ Run the [tool contract lab](../labs/index.qmd#a-read-only-tool-contract). Add an
 ## Deliverable
 
 Submit a contract with examples of a successful operation, invalid arguments, denial, and an absent record. State which cases are retryable.
+
+## Companion reading
+
+- *AI Agents in Action, Second Edition*, chapter 3, for tool and server integration through MCP [@lanham2026aiagents].
+- *Building Applications with AI Agents*, chapter 4, for designing and integrating agent tools [@albada2025applications].

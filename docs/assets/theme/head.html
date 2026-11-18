@@ -1,0 +1,23 @@
+<link rel="icon" href="https://hieutrungle.github.io/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script>
+  (() => {
+    // Seed Quarto's native switch before its body script runs. Light is the primary theme.
+    try {
+      const theme = localStorage.getItem("theme");
+      if (theme === "light" || theme === "dark") {
+        localStorage.setItem("quarto-color-scheme", theme === "dark" ? "alternate" : "default");
+      }
+    } catch {}
+
+    // Quarto's button updates the body class before this bubbling listener runs.
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".quarto-color-scheme-toggle")) return;
+      try {
+        localStorage.setItem("theme", document.body.classList.contains("quarto-dark") ? "dark" : "light");
+      } catch {}
+    });
+  })();
+</script>

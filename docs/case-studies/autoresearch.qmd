@@ -43,6 +43,8 @@ The baseline predicts 0 and has validation MAE 3. The four proposals are 2, 1, 3
 
 ## Study questions across the course
 
+The running case starts with a hypothesis, an experiment, a measurement, and a decision. Later design exercises extend that loop to research planning, repository inspection, literature search, and experiment management. A production design also has to account for compute budgets, a durable experiment ledger, replanning and recovery, parallel work, evaluation, stopping conditions, and observability.
+
 | Blocks | Examine |
 |---|---|
 | 01–04 | Which decisions belong to the proposer, and which are fixed by the controller? |

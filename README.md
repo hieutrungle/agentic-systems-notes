@@ -2,6 +2,14 @@
 
 A 14-block research and study curriculum on tool-using AI systems. Follow the [curriculum](docs/curriculum/index.qmd), read the [literature reviews and paper notes](docs/literature/index.qmd), and apply each block to the [AutoResearch case study](docs/case-studies/autoresearch.qmd).
 
+The [Agentic Systems series gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) on Hieu T. Le's blog introduces the series. This repository is the technical source for the [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/), including its course material, runnable labs, and corrections.
+
+## How the course uses references
+
+Foundations in machine learning, reinforcement learning, distributed systems, and control frame the design questions. The two primary book companions are *AI Agents in Action, Second Edition: Intelligent workflows with LLMs, MCP, A2A, and more* and *Building Applications with AI Agents*. They supply practical examples alongside the independent 14-block sequence. The [study site](docs/index.qmd#primary-book-companions) introduces both books, and lessons point to relevant chapters.
+
+Original research and benchmarks support empirical claims. Current runtimes and specifications document what deployed systems implement. Course recommendations identify their assumptions and trade-offs as engineering synthesis. The [shared bibliography](docs/references.bib) holds the source records. Keep exploratory notes in `notes/raw/`, reproduce published results from versioned inputs and scripts, and record substantive corrections in [ERRATA.md](ERRATA.md).
+
 ## Run the labs
 
 Use Python 3.11 or newer. The core labs and tests use the standard library.

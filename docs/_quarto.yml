@@ -15,6 +15,8 @@ website:
   title: Agentic Systems Notes
   page-navigation: true
   navbar:
+    title: Agentic Systems
+    collapse-below: xl
     left:
       - text: Curriculum
         href: curriculum/index.qmd
@@ -26,6 +28,16 @@ website:
         href: exercises/index.qmd
       - text: AutoResearch
         href: case-studies/autoresearch.qmd
+    right:
+      - text: Hieu T. Le
+        href: https://hieutrungle.github.io/
+      - text: Blog
+        href: https://hieutrungle.github.io/blog/
+      - text: Learning
+        href: https://hieutrungle.github.io/blog/learning/
+  page-footer:
+    left: "[← Back to Learning](https://hieutrungle.github.io/blog/learning/)"
+    right: "[Source on GitHub](https://github.com/hieutrungle/agentic-systems-notes)"
   sidebar:
     - id: curriculum
       title: Curriculum
@@ -39,6 +51,10 @@ execute:
   enabled: false
 format:
   html:
-    theme: flatly
+    theme:
+      light: [default, assets/theme/site.scss, assets/theme/light.scss]
+      dark: [default, assets/theme/site.scss, assets/theme/dark.scss]
+    respect-user-color-scheme: true
+    include-in-header: assets/theme/head.html
     toc: true
     link-citations: true

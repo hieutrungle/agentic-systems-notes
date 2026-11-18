@@ -2,16 +2,34 @@
 
 ## Working in this repository
 
-- Run commands from the repository root. Keep changes scoped here. The adjacent `llm-post-training-notes` repository is a read-only reference.
+- Run commands from the repository root. Keep changes scoped here.
 - Publish curated writing under `docs/`. Keep dated exploratory notes in `notes/raw/`. Record substantive post-publication corrections in `ERRATA.md` with evidence and a page or section.
 - Keep curriculum filenames stable as `docs/curriculum/NN-topic.qmd` for blocks 01–14. Each block opens with a study question and includes concepts, a study task, and a deliverable. Update the curriculum index when titles or navigation change.
 - Place cross-block design exercises under `docs/exercises/` and the shared AutoResearch narrative under `docs/case-studies/`. Link to them with relative `.qmd` paths so links work under a GitHub Pages project prefix.
+
+## Parent sites and publishing
+
+- [Hieu T. Le](https://hieutrungle.github.io/) is the main identity. The [blog](https://hieutrungle.github.io/blog/) and its [Learning hub](https://hieutrungle.github.io/blog/learning/) provide public discovery. The [Agentic Systems gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) introduces the series. The [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/) publishes the full curriculum, literature, labs, exercises, and case study from this repository.
+- Use [`hieutrungle/llm-post-training-notes`](https://github.com/hieutrungle/llm-post-training-notes) as a read-only precedent for keeping exploratory notes separate from publishable material, checking results and figures, centralizing citations, and recording errata. Use [`hieutrungle/blog`](https://github.com/hieutrungle/blog) as the visual reference for colors, typography, and parent navigation. Adapt those choices to Quarto's components.
+- Keep the blog gateway concise. When a curriculum title or URL changes, coordinate the roadmap in the blog's `_data/series/agentic-systems.yml` with the curriculum index here.
+
+## Reference policy
+
+1. **Foundations.** Use established machine learning, reinforcement learning, distributed systems, control, and state-machine concepts to define the problem and its assumptions.
+2. **Primary book companions.** *AI Agents in Action, Second Edition: Intelligent workflows with LLMs, MCP, A2A, and more* and *Building Applications with AI Agents* supply practical context. Add short companion reading sections where relevant and check chapter numbers in the publisher's table of contents. The 14 blocks follow their own research and design sequence.
+3. **Original research.** Cite original papers, benchmarks, and technical reports for reported findings. Identify the conditions and limitations of each result.
+4. **Current systems and specifications.** Use primary documentation, versioned specifications such as MCP, and source code for claims about agent runtimes and deployed coding or research systems.
+5. **Course synthesis.** Label design patterns, recommendations, and system-design interpretations as engineering judgments and state the conditions that make them useful.
+
+For major technical claims, distinguish established concepts, original research evidence, current systems evidence, and engineering interpretation. Ask what the architectural contribution is, what changed in the model, tools, context, search, compute, orchestration, or evaluation, what baseline was used, what the improvement cost, and whether the evidence justifies the claim.
 
 ## Research writing
 
 - Store source metadata once in `docs/references.bib` with a stable `authoryearkeyword` key. Cite in Quarto as `[@key]`. Verify authors, venue, year, and the DOI, arXiv version, or original repository URL against the primary source.
 - Use `docs/literature/papers/<bib-key>.qmd` for individual paper notes. Record the question, method, evidence, limitations, and a follow-up. Use `docs/literature/` for reviews that compare claims across sources.
 - Mark illustrative, reproduced, and author-reported results clearly. For a numerical claim, identify the lab, fixture or data version, budget or seed where applicable, and rerun command. Pin external experiment inputs to a version. Keep essential examples reproducible from repository fixtures.
+- Generate published numbers and figures from versioned inputs using a rerunnable check or experiment. Link the inputs, command, and output from the lesson or nearby asset documentation.
+- Use AutoResearch as the running case study. Begin with a hypothesis, an experiment, metrics, and a decision. Later blocks can study research planning, repository inspection, literature search, experiment management, compute budgets, durable state and an experiment ledger, replanning, failure recovery, bounded parallel execution, evaluation, stopping conditions, and observability.
 - Keep AutoResearch proposals, evaluation, and promotion decisions distinct. State the baseline, selection metric, budget, and final holdout protocol in each experiment. Keep holdout outcomes out of proposal logic.
 
 ## Code and assets

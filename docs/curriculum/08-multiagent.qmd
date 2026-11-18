@@ -15,3 +15,7 @@ Design a proposer and an independent reviewer for experiment configs. Compare th
 ## Deliverable
 
 Submit a message contract, a tie-resolution rule, and an ablation that could show the reviewer adds little value.
+
+## Companion reading
+
+- *Building Applications with AI Agents*, chapter 8, for coordination patterns, agent-to-agent communication, and persistence [@albada2025applications].

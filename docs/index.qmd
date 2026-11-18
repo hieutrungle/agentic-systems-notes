@@ -1,5 +1,6 @@
 ---
 title: "Agentic Systems Notes"
+subtitle: "Engineering reliable, scalable, production-grade AI agents"
 ---
 
 A 14-block study curriculum on how to design, evaluate, and operate AI systems that use tools and adapt to observations. The running question is **when does giving a system more control improve the result enough to justify the added cost and failure modes?**
@@ -9,3 +10,16 @@ Start with the [curriculum](curriculum/index.qmd) for the study sequence, or run
 ## How to study
 
 For each block, identify the decision the system must make, draw its state and permissions, and produce the requested artifact. Keep your baselines, assumptions, and failure traces alongside the result. Use the [literature reviews](literature/index.qmd) to see which conclusions come from published experiments and which remain design hypotheses.
+
+## Primary book companions
+
+- *AI Agents in Action, Second Edition: Intelligent workflows with LLMs, MCP, A2A, and more* [@lanham2026aiagents] gives practical examples of tool integration, orchestration, and agent evaluation.
+- *Building Applications with AI Agents* [@albada2025applications] follows the design, measurement, and operation of single-agent and multi-agent applications.
+
+The books provide practical reading alongside a curriculum organized around first-principles architecture, original research, current systems, labs, and design exercises.
+
+## From evidence to design
+
+Start with established concepts from machine learning, reinforcement learning, distributed systems, and control. Use original papers and benchmarks to examine reported results, and consult current runtime documentation and specifications such as MCP for implementation details. Course recommendations are engineering interpretations informed by that evidence.
+
+When a paper or system claims an improvement, identify its architectural contribution. Ask what changed in the model, tools, context, search, compute, orchestration, or evaluation. Check the baseline, measure the cost, and decide whether the evidence supports the claim in your setting.

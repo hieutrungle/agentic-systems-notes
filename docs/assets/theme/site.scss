@@ -1,0 +1,90 @@
+/*-- scss:defaults --*/
+// Bootstrap and Quarto variables consume the blog palette from light.scss or dark.scss.
+$font-family-sans-serif: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+$headings-font-family: "EB Garamond", Georgia, serif;
+$headings-font-weight: 600;
+$headings-color: $primary;
+$line-height-base: 1.65;
+$link-hover-color: $primary;
+$navbar-bg: $body-bg;
+$navbar-fg: $text-muted;
+$navbar-hl: $primary;
+$sidebar-bg: $body-bg;
+$sidebar-fg: $text-muted;
+$sidebar-hl: $primary;
+$footer-bg: $body-bg;
+$footer-fg: $text-muted;
+$input-bg: $blog-surface;
+$input-color: $body-color;
+$code-color: $blog-chip-text;
+$code-bg: $blog-chip;
+$code-block-bg: $blog-surface;
+$code-block-border-left: $border-color;
+$table-border-color: $border-color;
+
+/*-- scss:rules --*/
+:root {
+  color-scheme: $blog-scheme;
+}
+
+a {
+  text-underline-offset: 0.16em;
+}
+
+body :focus-visible {
+  outline: 3px solid $primary;
+  outline-offset: 3px;
+}
+
+#quarto-header,
+.nav-footer {
+  border-color: $border-color;
+}
+
+#quarto-header {
+  border-bottom: 1px solid $border-color;
+}
+
+.navbar-brand {
+  color: $primary;
+  font-family: $headings-font-family;
+  font-size: clamp(1.1rem, 4.3vw, 1.5rem);
+  font-weight: 600;
+}
+
+.navbar-nav .nav-link {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.quarto-title h1 {
+  font-size: clamp(2.25rem, 4.5vw, 3.15rem);
+  line-height: 1.1;
+}
+
+.quarto-title .subtitle {
+  color: $text-muted;
+}
+
+#TOC #toc-title,
+.sidebar-title {
+  font-family: $font-family-sans-serif;
+  font-weight: 600;
+}
+
+main blockquote {
+  background: $blog-highlight;
+  border-left-color: $blog-gold;
+  color: $body-color;
+}
+
+.cell[data-file$=".dot"] svg {
+  width: 100%;
+  height: auto;
+
+  // Graphviz uses fixed dark lettering in generated SVGs.
+  @if $blog-scheme == dark {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+  }
+}

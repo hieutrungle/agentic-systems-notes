@@ -15,3 +15,7 @@ Map the trial ledger to ordered events. Replay the decisions after a simulated i
 ## Deliverable
 
 Submit a trace schema, a redaction rule, and the minimum record needed to explain why a candidate was kept.
+
+## Companion reading
+
+- *Building Applications with AI Agents*, chapter 10, for production instrumentation, monitoring, and regression traces [@albada2025applications].
