@@ -1,0 +1,43 @@
+---
+title: "Agent Loop and State Machines"
+aliases:
+  - 03-orchestration.html
+---
+
+When should transitions be explicit in the controller?
+
+## Concepts
+
+An execution loop turns observations into decisions across time. A controller can follow fixed edges, let the policy choose among legal edges, or combine both. For example, a model can choose a candidate while the controller owns the budget, routes failures, and makes terminal states irreversible.
+
+```text
+observe → update state → choose action → execute → observe
+               │
+               └─ success, exhausted budget, or cancellation → stop
+```
+
+### State-machine and RL models
+
+An explicit state machine specifies legal transitions, deterministic routing, branch joins, and terminal states. Each transition has a trigger, a guard, and a state update. A graph execution engine can run that representation and persist checkpoints. The state machine is also a contract that can be implemented with a table and a loop.
+
+An MDP describes environment state, available actions, a transition distribution, reward, and terminal conditions. A policy maps its input state to a distribution over actions. An MDP state contains enough information to model the next transition and reward. In a POMDP the agent receives an observation generated from the hidden environment state. The policy can use observation history, a belief state, or a learned approximation. A persisted run checkpoint describes the controller's progress and may omit hidden environment state [@sutton2018reinforcement].
+
+### Production and failure modes
+
+Time out operations that fail independently. Persist the run ID, current state, remaining budget, and pending operation ID before yielding control. If the scorer times out, the controller needs a reconciliation transition that can discover whether the score already exists. A retry edge without a guard can create an unbounded loop. Compare fixed transitions for invariants with model-controlled transitions for ambiguous decisions. ReAct illustrates how observations change subsequent actions in a reasoning-and-acting trajectory [@yao2023react].
+
+## Study task
+
+Use the [AutoResearch loop](../case-studies/autoresearch.qmd) to build a transition table with proposed, scored, kept, discarded, and failed outcomes. Add a scoring-timeout observation and decide whether scoring can be resumed or retried after a lost reply.
+
+## Deliverable
+
+Submit a state diagram and a transition table with each trigger, guard, state update, terminal condition, and one recovery invariant.
+
+## Conceptual questions
+
+1. Which edges in the AutoResearch loop can a model choose?
+2. What observation would make the current implementation partially observable?
+3. Which parts of the checkpoint reconstruct the controller's state after a restart?
+4. Where should a retry consume budget, and how would you test that?
+5. When would a graph engine help more than a loop with a transition table?

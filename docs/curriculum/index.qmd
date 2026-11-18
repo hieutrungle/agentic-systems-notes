@@ -2,21 +2,21 @@
 title: "Curriculum"
 ---
 
-The blocks move from a single decision loop to an evaluated system. Each page defines a study task and an artifact to produce. The [design exercises](../exercises/index.qmd) combine several blocks in one review.
+The canonical sequence starts with control authority and ends with a system design review. Each block has a study task and a deliverable. The [design exercises](../exercises/index.qmd) combine topics, and [AutoResearch](../case-studies/autoresearch.qmd) runs through the course.
 
 | Block | Topic | Study question |
 |---|---|---|
-| 01 | [Foundations and baselines](01-foundations.qmd) | What changes when a model can observe the consequences of its own actions? |
-| 02 | [Tool interfaces and structured outputs](02-tool-interfaces.qmd) | How does a controller turn a proposed action into a validated operation? |
-| 03 | [Workflow orchestration](03-orchestration.qmd) | When should transitions be explicit in the controller? |
-| 04 | [Planning and replanning](04-planning.qmd) | What makes a plan worth maintaining across observations? |
-| 05 | [Context construction and retrieval](05-context-retrieval.qmd) | Which evidence should enter a model call under a context budget? |
-| 06 | [Memory and durable state](06-memory-state.qmd) | Which information should survive a call, a restart, or a user session? |
-| 07 | [Feedback, verification, and repair](07-feedback.qmd) | What evidence warrants another attempt? |
-| 08 | [Multi-agent coordination](08-multiagent.qmd) | When does splitting roles improve a shared outcome? |
-| 09 | [Tracing, observability, and replay](09-observability.qmd) | What would let another person reconstruct a decision? |
-| 10 | [Evaluation and benchmarking](10-evaluation.qmd) | How can the evaluation attribute a gain to an architectural change? |
-| 11 | [Permissions and trust boundaries](11-trust-boundaries.qmd) | Which components are authorized to change state? |
-| 12 | [Reliability and delivery](12-reliability.qmd) | How does the system resume accurately when infrastructure fails? |
-| 13 | [Automated experimentation](13-autoresearch.qmd) | Can an adaptive experiment policy beat a simple search schedule? |
-| 14 | [Capstone design review](14-capstone.qmd) | What evidence justifies deploying the added autonomy? |
+| 01 | [Agent Fundamentals — What Is an Agent?](01-agent-fundamentals.qmd) | What changes when a model can observe the consequences of its own actions? |
+| 02 | [Agent Loop and State Machines](02-agent-loop-state-machines.qmd) | When should transitions be explicit in the controller? |
+| 03 | [Tool Use](03-tool-use.qmd) | How does a controller turn a proposed action into a validated operation? |
+| 04 | [Context, State, and Memory](04-context-state-memory.qmd) | Which evidence should enter a model call, and what must survive a restart? |
+| 05 | [Reasoning and Planning](05-reasoning-planning.qmd) | What makes a plan worth maintaining across observations? |
+| 06 | [Core Agent Architectures](06-agent-architectures.qmd) | Who should own the next decision and the state needed to make it? |
+| 07 | [Multi-Agent Systems](07-multi-agent-systems.qmd) | When does splitting roles improve a shared outcome? |
+| 08 | [MCP and Agent Interoperability](08-mcp-interoperability.qmd) | Which boundary should be standardized for independently developed components to work together? |
+| 09 | [Agent Evaluation](09-agent-evaluation.qmd) | How can the evaluation attribute a gain to an architectural change? |
+| 10 | [Reliability and Failure Recovery](10-reliability-recovery.qmd) | How does the system resume accurately when an operation fails or its outcome is ambiguous? |
+| 11 | [Long-Horizon Agents](11-long-horizon-agents.qmd) | How can a run resume hours later and still know what to do next? |
+| 12 | [Production Agent Infrastructure](12-production-infrastructure.qmd) | What must the runtime guarantee when many agent runs share the same infrastructure? |
+| 13 | [Learning Agents and Reinforcement Learning](13-learning-agents-rl.qmd) | What evidence shows that training improved the policy that drives the agent? |
+| 14 | [Agentic System Design](14-agentic-system-design.qmd) | What evidence justifies deploying the added autonomy? |

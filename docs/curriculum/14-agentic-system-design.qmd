@@ -1,0 +1,52 @@
+---
+title: "Agentic System Design"
+aliases:
+  - 14-capstone.html
+---
+
+What evidence justifies deploying the added autonomy?
+
+## Concepts
+
+Design the system before reading a critique. Begin with the intended outcome, a fixed-workflow baseline, and the decisions that could benefit from adaptive control. Specify the state and permission invariants that must hold even when the model makes a mistake.
+
+```text
+user goal → controller → bounded tools and workers → versioned artifacts
+                 ↕                     ↕
+          run state and memory    independently measured outcomes
+                 ↘                     ↙
+              approval, publication, and review
+```
+
+### Design scenarios
+
+| Problem | Design pressure |
+|---|---|
+| Autonomous ML research or experiment automation | Compare trials on a frozen evaluator and enforce a compute budget. |
+| Coding agent | Coordinate workspace changes, deterministic tests, review, and safe rollback. |
+| Deep or enterprise research | Track evidence freshness, access scopes, and citation coverage across long runs. |
+| Browser automation | Bind permissions to a verified action and recover from a stale page or expired session. |
+| Incident response | Keep remediation authority explicit while evidence arrives from several systems. |
+| Data analysis | Pin sources and queries so another analyst can reproduce the result. |
+
+### Senior/Staff design review
+
+State control flow, state ownership, context construction, tool contracts, permissions, memory lifetime, plan updates, execution, and resource budgets. Explain observability, evaluation and success criteria, human oversight, and how the system recovers after partial completion. Draw authorization and trust boundaries. Reviewers should identify the most expensive dependency, the hardest-to-reproduce failure, and the choice that carries the greatest operational risk.
+
+Compare alternatives with a measured baseline under the same constraints. State the evidence that would falsify your preferred design, the conditions under which a simpler design wins, and who owns the rollout and rollback decision.
+
+## Study task
+
+Design production AutoResearch. Separate research planning, experiment execution, frozen evaluation, and promotion. Trace a preempted job, a late score, and a proposed change outside the allowed scope. Compare a fixed workflow with an adaptive controller on identical tasks and budgets. The [citation assistant exercise](../exercises/index.qmd#research-assistant-with-citations) is an alternate scenario after completing the AutoResearch comparison.
+
+## Deliverable
+
+Submit an architecture diagram, explicit invariants, executable baseline, evaluation table, reproducible trace, failure analysis, and decision record. Include a rerun command, data and code versions, a rollback plan, and a proposed follow-up experiment.
+
+## Conceptual questions
+
+1. Which decision needs agentic control, and how would you prove it?
+2. What recovery invariant protects promotion after a worker fails?
+3. Which teams own evaluation, infrastructure, review, and incident response?
+4. What evidence would justify the cost of rolling out the adaptive controller?
+5. What architecture change would you make if budget or permission constraints tightened?

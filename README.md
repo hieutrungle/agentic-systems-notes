@@ -4,6 +4,8 @@ A 14-block research and study curriculum on tool-using AI systems. Follow the [c
 
 The [Agentic Systems series gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) on Hieu T. Le's blog introduces the series. This repository is the technical source for the [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/), including its course material, runnable labs, and corrections.
 
+The [canonical curriculum](docs/curriculum/index.qmd) fixes the order, titles, and routes of the 14 blocks. AutoResearch is the running example from Agent Fundamentals to the Agentic System Design capstone. Block 01 is a scaffold for the upcoming study session.
+
 ## How the course uses references
 
 Foundations in machine learning, reinforcement learning, distributed systems, and control frame the design questions. The two primary book companions are *AI Agents in Action, Second Edition: Intelligent workflows with LLMs, MCP, A2A, and more* and *Building Applications with AI Agents*. They supply practical examples alongside the independent 14-block sequence. The [study site](docs/index.qmd#primary-book-companions) introduces both books, and lessons point to relevant chapters.
@@ -33,9 +35,21 @@ quarto preview docs
 ```bash
 quarto render docs --fail-if-warnings
 python tests/test_site.py docs/_site
+python tests/check_curriculum.py --site docs/_site
 ```
 
 The site builds without executing Python labs or rendering Manim scenes. Quarto renders Mermaid and Graphviz as part of the HTML build. See [animations](animations/README.md) for the separate Manim setup and render command.
+
+## Check the blog roadmap
+
+With a checkout of `hieutrungle/blog` at `../blog`, compare its roadmap with the same rendered site.
+
+```bash
+python tests/check_curriculum.py --site docs/_site \
+  --blog-roadmap ../blog/_data/series/agentic-systems.yml
+```
+
+The checker uses Python's standard library. The blog mirror uses a double-quoted `title` and a relative `page` filename for each entry. The Agentic Systems workflow checks the rendered curriculum, navigation, and aliases. The blog workflow compares the mirror with Agentic Systems `main` and checks the published canonical pages. When authorized to change a route or title, deploy the Quarto site before pushing the synchronized blog metadata.
 
 ## Publish with GitHub Pages
 

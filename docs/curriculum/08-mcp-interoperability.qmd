@@ -1,0 +1,46 @@
+---
+title: "MCP and Agent Interoperability"
+---
+
+Which boundary should be standardized for independently developed components to work together?
+
+## Concepts
+
+Interoperability gives a host a consistent way to discover and invoke capabilities supplied by different systems. In MCP, the host owns the application and manages clients. A client communicates with a server that exposes capabilities. This block uses the 2025-11-25 specification revision as a concrete reference [@mcp2025specification].
+
+```text
+agent host → MCP client → transport → MCP server → backing service
+             discovery, capability negotiation, and invocation
+```
+
+### Protocol and architecture
+
+Tools expose callable operations, resources expose contextual data, and prompts expose reusable templates. On initialization, peers negotiate the protocol version and capabilities. During operation the client can list supported items and call a tool or read a resource. Where a server signals a changed list, the host can refresh its view and reconsider what is available for the task. Local stdio and Streamable HTTP transport have different process, network, and failure boundaries. Close or recover connections according to the chosen transport and specification revision.
+
+Authentication establishes who the client acts for. Authorization determines which actions that identity can take. In the HTTP authorization profile, follow the protocol's discovery and token requirements. Local processes need their own credential and execution boundaries. Filter discovery by policy, recheck authorization at execution, and treat descriptions and returned content as inputs from another trust boundary.
+
+### Direct APIs and agent-to-agent communication
+
+A direct API can be simpler for a single stable integration, especially when it needs specialized behavior and precise performance control. MCP can reduce host-specific adapters and make capabilities discoverable. Measure the cost of schema discovery, adapter layers, and managing server trust. A protocol implementation in a specific SDK is one way to realize the boundary.
+
+Agent-to-agent protocols address a different relationship. A2A, for example, uses Agent Cards to advertise capabilities and defines task and messaging exchanges between agents [@a2a2025specification]. A researcher can use both patterns, with MCP for service capabilities and A2A for delegated work. The host still defines which counterparties it trusts and which decisions it delegates.
+
+## Study task
+
+Design an AutoResearch integration for reading versioned research artifacts, registering a trial, and polling its status. Draw host, client, server, and backing service. Compare it with a direct API and identify which capabilities need authorization at invocation.
+
+## Deliverable
+
+Submit a capability matrix, a connection lifecycle, and a test for a capability disappearing or changing while a run is in progress.
+
+## Companion reading
+
+- *AI Agents in Action, Second Edition*, chapter 3, for tool and server integration through MCP [@lanham2026aiagents].
+
+## Conceptual questions
+
+1. Who should decide which discovered tools are presented to the model?
+2. What changes when a local server moves behind HTTP?
+3. How would you handle a schema revision between discovery and execution?
+4. When is direct integration a better architectural fit?
+5. What execution authority would an A2A task delegate that a read-only resource would retain locally?

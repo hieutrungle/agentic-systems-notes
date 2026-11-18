@@ -1,0 +1,50 @@
+---
+title: "Agent Evaluation"
+aliases:
+  - 10-evaluation.html
+---
+
+How can the evaluation attribute a gain to an architectural change?
+
+## Concepts
+
+Define success before choosing a metric. An agent may produce a correct answer through unauthorized actions, or follow a valid trajectory and still fail the task. Define task success, permission compliance, budget, and failure categories at the level of a run.
+
+```text
+versioned tasks + budget → baseline and candidate → trajectories and final outputs
+                                                           ↓
+                                      deterministic checks, judges, and review
+                                                           ↓
+                                         paired outcomes, cost, and uncertainty
+```
+
+### Evaluation targets and methods
+
+Score final answers for correctness and completeness. Score tool calls for selection, valid arguments, authorization, and observed effects. Use step labels to diagnose where a run went wrong, and trajectory checks to find loops, missing evidence, or prohibited transitions. A deterministic evaluator works when success is verifiable. A rubric-driven LLM judge can scale open-ended scoring and needs calibration against independent human judgments. Pairwise evaluation helps compare alternatives when absolute scales are unstable. Randomize comparison order and track ties, agreement, and potential length or style bias.
+
+AgentBench illustrates the need to separate outcomes across environments [@liu2024agentbench]. Pin task fixtures, model and tool versions, instructions, permissions, seeds where available, and run budgets. Repeat stochastic runs, use paired tasks, and report uncertainty and failure categories. Report success under budget, tool and token usage, and latency together. Robustness probes can vary corrupt or incomplete observations and simulate outages while holding other factors fixed.
+
+### Observability and production
+
+A trace connects decisions to run IDs, step IDs, input versions, observations, and outcomes. Replay captured observations to test decisions without repeating side effects. Keep trace inspection and aggregate comparisons separate. A production harness should rerun regression cases after changes, sample real runs for review, and evaluate privacy-safe traces at the same permission boundary. [Block 12](12-production-infrastructure.qmd) covers event delivery and replay infrastructure.
+
+## Study task
+
+Compare fixed search with an adaptive AutoResearch proposal rule across synthetic datasets. Match trial budgets and score both with the same frozen evaluator. Measure validation gains and final holdout error, and use a replayed trace to explain one failure.
+
+## Deliverable
+
+Submit the protocol, per-task evaluation table, uncertainty appropriate to the sample, one plausible confound, and a trace that distinguishes a bad candidate from an evaluator failure.
+
+## Companion reading
+
+- *AI Agents in Action, Second Edition*, chapter 7, for evaluation and feedback [@lanham2026aiagents].
+- *Building Applications with AI Agents*, chapter 9, for component-level and end-to-end evaluation [@albada2025applications].
+
+## Conceptual questions
+
+1. What would a final-answer metric miss in a tool-using run?
+2. How would you tell whether a judge prefers a candidate's style over its correctness?
+3. Which inputs must be invariant for a paired comparison?
+4. How could a candidate win on raw success and lose on success under budget?
+5. Which observations would you capture so another reviewer can replay a failure?

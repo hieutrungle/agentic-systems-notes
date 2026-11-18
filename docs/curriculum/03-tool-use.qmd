@@ -1,0 +1,46 @@
+---
+title: "Tool Use"
+aliases:
+  - 02-tool-interfaces.html
+---
+
+How does a controller turn a proposed action into a validated operation?
+
+## Concepts
+
+Tool design is action-space design. A model can only choose from actions that the runtime exposes, and their granularity shapes which trajectories it can find. A small set of composable operations gives flexibility. Larger operations can reduce tool calls when they match a stable task and produce auditable outcomes.
+
+```text
+registry → available schemas → tool selection and arguments
+                                    ↓
+observation ← structured outcome ← execution ← authorization ← validation
+```
+
+Define tool names, argument schemas, and typed outcomes. Distinguish invalid arguments, denial, absence, transient failure, and an ambiguous outcome. Schema validation checks shape and bounds. The dispatcher checks resource identity, caller authorization, and approval for consequential effects. A sandbox limits what the tool process can affect. Keep audit records that tie the request, principal, policy decision, and observed effect together.
+
+### Production and alternatives
+
+Separate read tools from writes and mark irreversible actions explicitly. Retry transient failures with deadlines and backoff. Use an operation ID for writes whose provider supports idempotency, and reconcile a lost reply before repeating a side effect. Treat tool results as observations from an external trust boundary.
+
+A registry records versions, capabilities, and access scopes. Filter it for a task and principal before exposing schemas. Dynamic discovery can reduce prompt load, but the router can omit a needed tool. Measure selection accuracy, argument validity, execution success, and available-action coverage independently. [Block 08](08-mcp-interoperability.qmd) studies MCP as an interoperability layer. Toolformer investigates learning when and how to invoke tools in a particular training setup [@schick2023toolformer].
+
+## Study task
+
+Run the [tool contract lab](../labs/index.qmd#a-read-only-tool-contract), add an extra argument, and trace the validation error. Sketch a write tool that registers an AutoResearch candidate. Give the proposer permission to register candidates and the evaluator permission to read isolated fixtures. Include denial cases for editing the evaluator and requesting unauthorized promotion.
+
+## Deliverable
+
+Submit a tool contract with typed success and error cases, a data-flow diagram, and a capability matrix. State the expected behavior for an ambiguous write and every denied operation.
+
+## Companion reading
+
+- *Building Applications with AI Agents*, chapter 4, for tool design and integration [@albada2025applications].
+- The protocol-focused chapter is listed in [Block 08](08-mcp-interoperability.qmd#companion-reading).
+
+## Conceptual questions
+
+1. How would you split a research tool into composable actions?
+2. When should a tool expose lookup and modification separately?
+3. What evidence would let you retry a lost write response?
+4. How could dynamic discovery improve cost and lower success at the same time?
+5. Which checks belong at dispatch even if the model reliably produces valid arguments?

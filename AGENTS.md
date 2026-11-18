@@ -4,7 +4,7 @@
 
 - Run commands from the repository root. Keep changes scoped here.
 - Publish curated writing under `docs/`. Keep dated exploratory notes in `notes/raw/`. Record substantive post-publication corrections in `ERRATA.md` with evidence and a page or section.
-- Keep curriculum filenames stable as `docs/curriculum/NN-topic.qmd` for blocks 01–14. Each block opens with a study question and includes concepts, a study task, and a deliverable. Update the curriculum index when titles or navigation change.
+- The canonical 14-block curriculum in `docs/curriculum/index.qmd` is a project invariant. Improve material within the blocks. Change block identities, order, or stable `docs/curriculum/NN-topic.qmd` filenames only at the project owner's explicit request. Preserve published URLs with Quarto aliases when a route changes.
 - Place cross-block design exercises under `docs/exercises/` and the shared AutoResearch narrative under `docs/case-studies/`. Link to them with relative `.qmd` paths so links work under a GitHub Pages project prefix.
 
 ## Parent sites and publishing
@@ -12,6 +12,13 @@
 - [Hieu T. Le](https://hieutrungle.github.io/) is the main identity. The [blog](https://hieutrungle.github.io/blog/) and its [Learning hub](https://hieutrungle.github.io/blog/learning/) provide public discovery. The [Agentic Systems gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) introduces the series. The [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/) publishes the full curriculum, literature, labs, exercises, and case study from this repository.
 - Use [`hieutrungle/llm-post-training-notes`](https://github.com/hieutrungle/llm-post-training-notes) as a read-only precedent for keeping exploratory notes separate from publishable material, checking results and figures, centralizing citations, and recording errata. Use [`hieutrungle/blog`](https://github.com/hieutrungle/blog) as the visual reference for colors, typography, and parent navigation. Adapt those choices to Quarto's components.
 - Keep the blog gateway concise. When a curriculum title or URL changes, coordinate the roadmap in the blog's `_data/series/agentic-systems.yml` with the curriculum index here.
+
+## Teaching protocol
+
+- Open each block with a study question and include a study task and deliverable. Develop intuition, then show an architecture or diagram. Formalize where useful and connect the design to machine learning, reinforcement learning, control, or distributed systems. Identify which ideas are general concepts and which belong to a particular framework implementation.
+- Use original research, realistic examples, failure modes, production implications, and credible alternatives or disagreements. Connect the block to AutoResearch. Include approximately five conceptual questions.
+- Use the sequence **lesson → student answers → critique → model answers**. Keep full answers out of the main lesson so students can reason through the questions before reading a critique.
+- Block 01 is a scaffold pending the planned Agent Fundamentals study session. Its placeholders mark topics for that session.
 
 ## Reference policy
 
@@ -47,6 +54,7 @@ Run all three commands from the root for changes to a lab, the site, or content 
 python -m unittest discover -s tests -v
 quarto render docs --fail-if-warnings
 python tests/test_site.py docs/_site
+python tests/check_curriculum.py --site docs/_site
 ```
 
 Rerender modified Manim scenes with the command in `animations/README.md`. Keep the Quarto build independent of lab execution and optional media tooling. The workflow deploys to GitHub Pages from `main` after testing and the site build succeed.

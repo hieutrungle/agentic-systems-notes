@@ -1,0 +1,43 @@
+---
+title: "Long-Horizon Agents"
+aliases:
+  - 13-autoresearch.html
+---
+
+How can a run resume hours later and still know what to do next?
+
+## Concepts
+
+A long horizon spans many decisions and often multiple process lifetimes. A coding run can wait for tests, a deep-research run can wait for evidence, and an experiment run can wait for compute. A browser-assisted workflow may need to pause when a session expires or a consequential action requires approval. Each case needs durable progress that a later worker can interpret.
+
+```text
+goal → task graph → leased subtask → checkpoint + artifact
+           ↑                               │
+           └──── validate progress and replan ┘
+```
+
+### Continuity across hours or days
+
+Decompose by verifiable artifacts and dependencies. Give each subtask an owner, attempt, status, deadline, and completion evidence. The controller asynchronously dispatches work and records checkpoints at handoffs. Resume by loading the run's versions and reconciling pending operations. Keep active context short and rebuild it around the current milestone, open questions, and source artifacts. Replan when assumptions fail, dependencies change, or expected progress falls below a threshold.
+
+Stopping rules can be driven by completion, lack of progress, exhausted budget, deadline, or a request for human guidance. Separate waiting for external work from active inference so the system can account for time, costs, and concurrency. Compare autonomous replanning with a fixed task graph and periodic human review. A long-running model loop may otherwise repeat work while reporting new progress.
+
+### AutoResearch
+
+Reproduce the [reference trace](../case-studies/autoresearch.qmd#reproduce-the-example). The long-running version can schedule trials asynchronously and recover from preempted workers. Keep a ledger of candidate inputs and versions, validation metrics, status, and promotion decisions. Freeze the evaluator and limit compute before a run. Replanning may use validation results and operational errors. The final holdout remains sealed until selection ends [@karpathy2026autoresearch].
+
+## Study task
+
+Plan a multi-hour run and identify milestones, asynchronous operations, and stopping conditions. Simulate a restart after the second trial, a preempted worker, and a new result arriving after the run stopped.
+
+## Deliverable
+
+Submit a task graph, ledger and checkpoint schemas, and a resume trace. Specify the baseline, budget, promotion policy, and final holdout protocol.
+
+## Conceptual questions
+
+1. Which durable facts let a different worker take over?
+2. How would you distinguish inactivity from a valid long wait?
+3. Which observations warrant replanning after a restart?
+4. What should happen to an in-flight trial when the budget or deadline is reached?
+5. When are shorter independently reviewed runs preferable to a single long run?

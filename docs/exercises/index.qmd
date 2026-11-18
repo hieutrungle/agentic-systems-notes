@@ -14,4 +14,4 @@ Design a literature assistant that answers a question over a fixed corpus and at
 
 ## Capstone design review
 
-Prepare a diagram, explicit invariants, a baseline, a comparable evaluation table, and one failure trace. Explain which design choice the evidence supports and what you would measure next. The [capstone block](../curriculum/14-capstone.qmd) defines the final submission.
+Prepare a diagram, explicit invariants, a baseline, a comparable evaluation table, and one failure trace. Explain which design choice the evidence supports and what you would measure next. [Agentic System Design](../curriculum/14-agentic-system-design.qmd) defines the final submission.

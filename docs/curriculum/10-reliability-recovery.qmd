@@ -1,0 +1,47 @@
+---
+title: "Reliability and Failure Recovery"
+aliases:
+  - 07-feedback.html
+  - 11-trust-boundaries.html
+  - 12-reliability.html
+---
+
+How does the system resume accurately when an operation fails or its outcome is ambiguous?
+
+## Concepts
+
+A timeout leaves uncertainty about whether an operation took effect. The recovery policy must account for both possibilities. Classify invalid outputs, hallucinated actions, rejected or failed tool calls, planner dead ends, loops, corrupted context, and partially completed effects. Define whether each class should repair, retry, reconcile, stop, or escalate.
+
+```text
+checkpoint → authorize → execute → commit observed effect
+                             │
+                        timeout or failure
+                             ↓
+                  reconcile → retry, stop, or escalate
+```
+
+### Recovery mechanisms
+
+Set per-attempt timeouts, run deadlines, and a retry budget. Retry transient failures using exponential backoff with jitter. A circuit breaker pauses calls to a failing dependency. For a write, persist an operation ID before execution, reuse the key on retries where supported, and record the accepted result atomically. Reconcile ambiguous outcomes before reissuing a write. Use compensating actions or human escalation when an effect cannot be safely repeated.
+
+Distinguish progress from repeated activity with explicit state and a no-progress condition. Restore authoritative state after a crash and rebuild suspect context from versioned records. Verification can be deterministic or use an independent reviewer when judgment is needed. Limit revisions using observable evidence and a fixed budget. Reflexion offers one research example of feedback across attempts [@shinn2023reflexion].
+
+### Trust boundaries and failure containment
+
+Draw where untrusted data enters model context, tool handling, and the evaluator. Enforce least privilege and validate resource identity at dispatch. Guardrails can reject disallowed proposals and contain failures to a workspace or operation. Bind human approval to the exact action, scope, and proposal version. Record permission and approval decisions independently of the model's account of them.
+
+## Study task
+
+Trace an AutoResearch worker crash after scoring and before result publication. Show how two attempts with the same trial ID converge on one recorded result. Try a corrupted observation, denied evaluator edit, and unauthorized promotion request. Keep sealed holdout outcomes out of retry and repair logic.
+
+## Deliverable
+
+Submit a failure matrix, capability and approval decisions, and two traces that distinguish candidate failure from evaluator failure. Include a release plan with success, timeout, and rollback criteria.
+
+## Conceptual questions
+
+1. How can a lost acknowledgment and a failed write produce the same observation?
+2. When is a new attempt safer than repairing the existing run?
+3. What evidence lets an approval survive a restart?
+4. How should the system respond if a tool becomes unreliable halfway through a plan?
+5. Which invariant prevents repeated delivery from changing an incumbent twice?

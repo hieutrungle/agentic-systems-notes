@@ -1,0 +1,51 @@
+---
+title: "Production Agent Infrastructure"
+aliases:
+  - 09-observability.html
+---
+
+What must the runtime guarantee when many agent runs share the same infrastructure?
+
+## Concepts
+
+A production runtime schedules work, controls resource use, preserves authoritative state, and makes runs diagnosable. Separate admission and planning from execution. Use queues to absorb bursts, workers to isolate work, and a database or artifact store for state that must survive worker loss.
+
+```text
+admission → scheduler → queue → inference, tool, or training workers
+               ↕                         ↕
+        run-state database ← events → trace and artifact stores
+```
+
+### Execution and resource control
+
+Distinguish concurrency, which keeps several tasks in progress, from parallelism, which executes tasks simultaneously. Set limits by tenant and resource class. A GPU scheduler balances utilization, memory requirements, and deadline or priority. Model routing can choose a compatible model by cost or latency objective. Rate limits and token budgets should apply before dispatch, and backpressure should bound retries when a service saturates. Cache only with a key that captures relevant model and input versions, tool effects, and access scope.
+
+Queue delivery can repeat or reorder events. Use leases and attempt IDs to detect stale workers, and idempotent consumers or transactional writes to converge on one recorded effect. Track whether a completion commits before acknowledging delivery. Design joins, cancellation, and retries with budget and state ownership explicit. A single process is a useful baseline when workload and resilience requirements allow it.
+
+### Tracing, observability, and replay
+
+Record meaningful events with stable run and step IDs, parentage, input and policy versions, outcomes, and resource usage. Logs explain specific events, traces connect them across workers, and metrics reveal load and failure trends. Where payloads require redaction, keep versioned evidence references. Replay recorded observations to reconstruct a decision under a specified policy and configuration. Test service-level outcomes such as queue wait, tail latency, throughput, cost per successful run, and duplicate processing.
+
+### AutoResearch
+
+Keep trial inputs and artifacts versioned. A training worker can lease a trial, save artifacts, and publish its disposition to the ledger. The evaluator can use a separate worker pool. The controller owns promotion and rejects stale scores. A shared trace ID connects scheduling, training, evaluation, and the decision.
+
+## Study task
+
+Map the trial ledger to ordered events. Replay decisions after a simulated interruption. Identify which facts the current report cannot reconstruct, and design a queue and state store that can account for duplicate results.
+
+## Deliverable
+
+Submit a trace schema, redaction rule, delivery guarantee, and minimum record needed to explain why a candidate was kept. Include throughput and latency bottlenecks and how you would measure them.
+
+## Companion reading
+
+- *Building Applications with AI Agents*, chapter 10, for production instrumentation, monitoring, and regression traces [@albada2025applications].
+
+## Conceptual questions
+
+1. What happens if a worker acknowledges a queue item before committing the result?
+2. When would batching improve throughput while harming tail latency?
+3. Which context belongs in a cache key for safe reuse?
+4. What recorded event lets a replay detect that one run used a different evaluator?
+5. How would you choose limits when both inference and training contend for GPU memory?

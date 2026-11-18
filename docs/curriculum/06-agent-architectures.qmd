@@ -1,0 +1,75 @@
+---
+title: "Core Agent Architectures"
+---
+
+Who should own the next decision and the state needed to make it?
+
+## Concepts
+
+Choose an architecture by the decision that needs flexibility, the state required to make it, and the cost of being wrong. Draw proposal, execution, verification, and promotion authority separately. A useful architecture description specifies who can change each record, when control changes hands, and which transitions are deterministic. The patterns below are engineering design options. Comparisons need a baseline and a shared budget [@anthropic2024effectiveagents].
+
+```text
+task → control decision → bounded action → observed outcome
+             ↑                                 │
+             └── authoritative run state ─────┘
+```
+
+An implementation can combine patterns. For example, a deterministic graph can route to a planner for an ambiguous subtask, then send a promotion request to a human. A graph library or agent SDK may implement that design. State ownership, access policy, and completion criteria are architectural choices.
+
+### Control flow and state ownership
+
+::: {.table-responsive tabindex="0" role="region" aria-label="Architecture control flow and state ownership table"}
+
+| Architecture | Structure and control flow | State ownership | A fit when |
+|---|---|---|---|
+| Tool-using agent | One policy chooses tools after each observation | Controller owns run state and tool results | Tasks need bounded adaptive tool use |
+| Router | Gate selects one specialist or pipeline | Router owns routing metadata, handlers own branch state | Requests fall into recognizable classes |
+| Planner–executor | Planner sets milestones, executor acts and reports | Planner owns plan versions, executor records effects | Dependencies and revision triggers can be stated |
+| Supervisor–worker | Supervisor dispatches work, monitors completion, and joins results | Supervisor owns task status, workers own local checkpoints | Work can be divided and supervised |
+| Manager–specialist | Manager delegates domain decisions within explicit scopes | Manager owns the shared objective, specialists own domain artifacts | Heterogeneous expertise or access boundaries matter |
+| Generator–critic | Generator drafts, critic returns feedback, bounded loop revises | Controller owns versions and critique history | Quality can be assessed before release |
+| Actor–reviewer | Actor proposes a consequential operation, reviewer authorizes or denies it | Review service binds a decision to an immutable proposal | A second authority can prevent an unsafe or invalid effect |
+| Graph-based agent | Explicit nodes and guarded transitions with selected adaptive edges | Graph runtime owns checkpoint and transition state | Legal paths, joins, and recovery need to be inspectable |
+| Event-driven agent | Workers react to events and publish results asynchronously | Store or ledger owns durable state, consumers own processing offsets | Bursty work or independently retried stages need loose coupling |
+| Human-in-the-loop agent | Run pauses at a handoff or decision gate | Durable checkpoint owns the pending operation and approval record | Actions are sensitive, irreversible, or require judgment |
+
+:::
+
+### Trade-offs and evaluation
+
+::: {.table-responsive tabindex="0" role="region" aria-label="Architecture trade-offs and evaluation table"}
+
+| Architecture | Strength and failure mode | Latency and cost | What to evaluate |
+|---|---|---|---|
+| Tool-using agent | Simple ownership. Repeated calls can loop or accumulate errors. | Serial calls and tokens grow with trajectory length. | End-to-end success, tool errors, and stop behavior |
+| Router | Cheap specialization. A routing error can hide the correct branch. | Gate adds a call when model-driven. The chosen branch dominates. | Gate confusion, branch quality, and end-to-end routing regret |
+| Planner–executor | Makes dependencies inspectable. Plans can become stale. | Planning and replanning add serial work. | Planning benefit at equal budget, stale-plan detection, and recovery |
+| Supervisor–worker | Parallelizes independent work. Joins can accept stale or incomplete outputs. | Fan-out raises aggregate cost. Slow workers dominate a blocking join. | Partial worker failure, duplicate delivery, and completeness |
+| Manager–specialist | Preserves domain boundaries. Conflicting local objectives can harm the global result. | Handoffs add coordination and context cost. | Quality of handoffs and the end-to-end effect of role separation |
+| Generator–critic | Makes revision testable. Shared blind spots can reward superficial changes. | Each revision adds model calls and tokens. | Verifier agreement with an independent outcome and stop behavior |
+| Actor–reviewer | Separates authority. Review can approve a stale proposal or repeat the actor's mistake. | Review adds a serial gate and may require human time. | False approval and denial, stale approvals, and skipped checks |
+| Graph-based agent | Makes transition constraints explicit. State migration can break long-lived runs. | Predictable routing overhead. Sequential edges can amplify latency. | Transition coverage, checkpoint migration, and correctness after resume |
+| Event-driven agent | Supports independent retries. Duplicate or reordered events complicate state. | Queues add delay. Concurrency can improve utilization and raise load. | Backlog, saturation, duplicate handling, and reproducible replay |
+| Human-in-the-loop agent | Adds accountable judgment. Approvals can time out or lack enough context. | Human wait time dominates some paths. | Decision quality, reviewer load, and safe timeout behavior |
+
+:::
+
+### AutoResearch
+
+A planner can choose the next experiment, a worker can run it, and an independent evaluator can score it. A supervisor can schedule parallel trials without granting workers promotion authority. Compare that design with a single controller and a deterministic validator. Record baseline, trial budget, state ownership, and evaluation cost before adding roles.
+
+## Study task
+
+Draw two architectures for the same AutoResearch workload. Define their legal transitions and state writers. Trace a worker delay, a stale score, and a promotion request that needs approval.
+
+## Deliverable
+
+Submit both diagrams, the permissions and state ownership for each, a latency and cost budget, and an evaluation plan that can show which design earns its complexity.
+
+## Conceptual questions
+
+1. When is a manager–specialist split useful if a router already chooses specialists?
+2. Which failure becomes easier to contain when approval and execution are separate?
+3. What workload would make a supervisor's join slower than a single controller?
+4. How could a critic increase its own score while making the final artifact worse?
+5. Which design choice would you revisit if reviewer throughput became the bottleneck?

@@ -1,0 +1,43 @@
+---
+title: "Learning Agents and Reinforcement Learning"
+---
+
+What evidence shows that training improved the policy that drives the agent?
+
+## Concepts
+
+The runtime runs a policy and owns transitions, permissions, tool execution, and state. Post-training changes the policy that chooses actions. A better prompt, verifier, search schedule, or controller can improve runtime behavior while policy parameters stay fixed. Keep the harness fixed when testing a policy update.
+
+```text
+runtime + policy → trajectories → feedback or verified rewards → policy update
+       ↑                                                               │
+       └──────── evaluate the resulting policy on held-out tasks ──────┘
+```
+
+### Trajectories and learning signals
+
+A trajectory records states or observations, actions, and rewards under a policy. Tool calls and plan choices are trainable decisions when the rollout and scoring process captures them. Credit assignment asks which choices caused the return. An outcome reward grades the final result and can be sparse. Process rewards score intermediate events and may reward a convenient proxy. Preference optimization learns from comparisons of responses or trajectories, with the provenance and policy that generated those comparisons recorded.
+
+One RL objective is to maximize expected return, $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^{T} \gamma^t r_t]$. Here $\tau$ also depends on the frozen environment and runtime, $T$ is the stopping time, and $\gamma$ discounts later rewards. Selecting a different reward or stop condition changes the training problem even if the update rule stays the same.
+
+Offline learning reuses collected traces. Coverage and distribution shift constrain claims about actions rarely seen in the data. Online learning collects new rollouts and can trade exploration against exploitation. It also needs a safe training environment, controlled permissions, and a cost limit. Self-improvement can mean changing weights, improving a proposer from evidence, or storing feedback for later decisions. Specify which mechanism changed [@sutton2018reinforcement; @shinn2023reflexion].
+
+### Connections to LLM post-training
+
+PPO's clipped surrogate limits the incentive for large changes in sampled action probabilities. GRPO uses group-relative rewards to estimate advantages in the DeepSeekMath setting [@schulman2017ppo; @shao2024deepseekmath]. RL with verifiable rewards (RLVR) describes how the reward is obtained, such as checking an answer or a test result. PPO and GRPO describe how the policy is updated. A verifier can check tool-use success while missing unsafe actions or excessive compute, so evaluate the frozen runtime and policy on separate tasks with those outcomes measured explicitly. The [LLM post-training series](https://hieutrungle.github.io/blog/series/llm-post-training/) develops PPO, GRPO, and preference optimization from first principles.
+
+## Study task
+
+Compare an adaptive rule for selecting integer candidates with the fixed [AutoResearch proposal list](../case-studies/autoresearch.qmd#reproduce-the-example). Predeclare a task family, trial budget, and holdout. Then design a separate comparison that would test a learned proposer in the same controller. Trace how a sparse final reward and per-trial feedback would credit different actions.
+
+## Deliverable
+
+Submit a protocol with a fixed scorer, baseline, promotion rule, and trial ledger. State whether each comparison changes the runtime, the proposal rule, or learned weights. Include an analysis of selection effects and what your design can infer about policy improvement.
+
+## Conceptual questions
+
+1. Which improvement could come from runtime changes without policy learning?
+2. When can a process reward harm the objective measured at the end of a run?
+3. What limits claims from offline traces of one narrow behavior policy?
+4. How would you match exploration budget when comparing two learned policies?
+5. What evidence supports a preference update when reviewers disagree about the better trajectory?

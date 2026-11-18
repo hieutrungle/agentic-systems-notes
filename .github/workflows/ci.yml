@@ -36,6 +36,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python tests/test_site.py docs/_site
+      - run: python tests/check_curriculum.py --site docs/_site
       - uses: actions/upload-pages-artifact@v4
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:

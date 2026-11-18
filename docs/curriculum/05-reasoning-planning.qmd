@@ -1,0 +1,47 @@
+---
+title: "Reasoning and Planning"
+aliases:
+  - 04-planning.html
+---
+
+What makes a plan worth maintaining across observations?
+
+## Concepts
+
+A plan makes assumptions about what will be feasible after a step. Its value depends on how long those assumptions hold, how expensive planning is, and whether the executor can detect when a plan has failed. Decompose tasks around intermediate outcomes that can be checked.
+
+```text
+goal → decompose → plan → execute one step → verify observation
+                     ↑                            │
+                     └── replan if assumptions fail ┘
+```
+
+### Planning, search, and verification
+
+Compare three control choices. A reactive policy chooses after each observation. A planner–executor can commit to a sequence and revise it when preconditions fail. Receding-horizon planning commits to the next action while keeping later actions provisional. ReAct interleaves reasoning and actions, Reflexion uses feedback between trials, and Tree of Thoughts explores scored intermediate candidates [@yao2023react; @shinn2023reflexion; @yao2023tree].
+
+Tree search needs a state abstraction, branching limits, a value estimate, and a stop rule. An unreliable evaluator can favor a fluent dead end. A generator–verifier loop can refine a candidate when a verifier detects a specific error. Compare deterministic checks with judgment-based critiques, and examine when the proxy score tracks the intended outcome.
+
+### Production and alternatives
+
+Metacognition can be a control decision about when to deliberate, branch, check, continue, or stop. Record plan milestones, tool actions, verifier results, revision triggers, and cost. This evidence supports architectural evaluation without requiring private reasoning traces. Set separate search and execution budgets. A fixed schedule or an extra retrieval step can outperform elaborate deliberation if the decision has few useful branches.
+
+### AutoResearch
+
+An unexpected regression may warrant checking the evaluator or changing experiment priorities. Define which observations cause a replan. Keep final holdout outcomes away from both planner and verifier during search.
+
+## Study task
+
+Compare a fixed proposal schedule with one that revises priorities after a regression, using equal trial budgets. Inject a disagreement between validation and sealed holdout rankings. Formulate a stopping rule that only uses admissible evidence.
+
+## Deliverable
+
+Write a planning policy, a revision trigger, an observable verification trace, and one case in which the fixed schedule performs better.
+
+## Conceptual questions
+
+1. When would a plan still be useful if every step changes the environment?
+2. What makes an intermediate state suitable for tree search?
+3. Which evidence distinguishes faulty planning from a faulty verifier?
+4. How would you compare added planning tokens with added tool calls?
+5. When should a planner continue in the face of a low verifier score?

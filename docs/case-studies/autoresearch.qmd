@@ -47,10 +47,13 @@ The running case starts with a hypothesis, an experiment, a measurement, and a d
 
 | Blocks | Examine |
 |---|---|
-| 01–04 | Which decisions belong to the proposer, and which are fixed by the controller? |
-| 05–08 | Which experiment records help the proposer, and would a reviewer justify an additional call? |
-| 09–12 | What needs to be recorded to replay a decision, and what happens if publication or evaluation fails? |
-| 13–14 | Does an adaptive proposer beat a fixed search order under equal budgets on a sealed holdout? |
+| 01–02 | Who chooses the next experiment, and which transitions or stop decisions does the controller own? |
+| 03–04 | Which tools can propose or promote a candidate, and what belongs in prompt context or the durable ledger? |
+| 05–06 | When should the plan change, and which controller architecture can enforce the experiment protocol? |
+| 07–08 | When do separate research roles earn their coordination cost, and how could MCP expose research capabilities? |
+| 09–10 | How do we compare against a fixed baseline and recover from an ambiguous failure? |
+| 11–12 | How does the run resume hours later, and how do queues, GPUs, and traces make its execution accountable? |
+| 13–14 | Can the proposal policy learn, and what evidence justifies deploying the complete system? |
 
 ## Animation
 

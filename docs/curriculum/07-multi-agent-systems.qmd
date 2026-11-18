@@ -1,0 +1,51 @@
+---
+title: "Multi-Agent Systems"
+aliases:
+  - 08-multiagent.html
+---
+
+When does splitting roles improve a shared outcome?
+
+## Concepts
+
+Multiple agents can divide work, give specialists different tools or context, or add independent review. They also create communication, synchronization, and attribution costs. A strong single policy with tools, search, and a verifier is the comparison baseline [@anthropic2024effectiveagents].
+
+```text
+                    shared objective and budget
+                              │
+                       coordinator or board
+                       ↙                  ↘
+                proposer A             reviewer B
+                       ↘                  ↙
+                 versioned artifacts and decisions
+```
+
+### Coordination and communication
+
+A supervisor delegates to workers, and a hierarchy can aggregate decisions across supervisors. Peers can collaborate through explicit messages or publish artifacts to a shared blackboard. In decentralized designs, define how peers discover work, resolve competing updates, and act with incomplete information. Collaboration aligns roles around one objective. Competition, debate, and consensus can diversify proposals or expose disagreement, though agreeing agents can still share the same error.
+
+Isolated contexts reduce interference and let specialists use distinct evidence. Shared context simplifies handoff and can propagate unverified assumptions. Message protocols should identify sender, role, task, artifact version, requested action, deadline, and how results are acknowledged. Agent-to-agent transport solves message exchange. It leaves role assignment, authority, and aggregation policy to the architecture.
+
+### Production and failure modes
+
+Use an explicit state owner or conflict rule for shared writes. Budget fan-out and judge calls as part of the run. Give each worker a terminal condition, and define how partial completion affects the join. Compare performance against a single agent with equivalent token, tool, and compute budgets. Correlated errors, duplicated work, and costly coordination are reasons to prefer a simpler design.
+
+## Study task
+
+Design a proposer and independent reviewer for AutoResearch configs. Compare their handoff with a single proposer and deterministic validator at matched cost. Inject stale proposals and conflicting results.
+
+## Deliverable
+
+Submit a message contract, a tie-resolution rule, a partial-failure policy, and an ablation that could show the reviewer adds little value.
+
+## Companion reading
+
+- *Building Applications with AI Agents*, chapter 8, for coordination patterns, agent-to-agent communication, and persistence [@albada2025applications].
+
+## Conceptual questions
+
+1. Which part of the task genuinely benefits from specialized context?
+2. What should a supervisor do when workers report incompatible scores?
+3. When could consensus increase confidence without increasing correctness?
+4. What does a fair cost match include beyond token count?
+5. Which guarantees should a shared blackboard offer concurrent writers?

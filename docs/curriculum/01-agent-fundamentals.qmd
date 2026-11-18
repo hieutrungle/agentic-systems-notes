@@ -1,0 +1,88 @@
+---
+title: "Agent Fundamentals — What Is an Agent?"
+aliases:
+  - 01-foundations.html
+---
+
+What changes when a model can observe the consequences of its own actions?
+
+This outline preserves the original foundations exercise. The next study session will supply the full lesson.
+
+## Learning objectives
+
+- Compare a single LLM call, a pipeline, a workflow, a tool-using workflow, and an agent by who controls the next step.
+- Identify the policy, state, action space, environment interface, control loop, and objective in a system.
+
+## 1. Why “agent” is hard to define
+
+*To develop in the study session. Compare definitions by the behavior and control authority each one describes.*
+
+## 2. LLM call vs pipeline vs workflow vs agent
+
+*To develop. Build a worked comparison from a single call through a tool-using workflow to an autonomous agent.*
+
+## 3. The control-authority boundary
+
+The original foundations lesson asked where control lives in a fixed workflow and in a model-directed loop. Identify who proposes an action, who authorizes it, and who decides whether the run stops [@anthropic2024effectiveagents; @yao2023react].
+
+## 4. Agenticity as a spectrum
+
+*To develop. Compare the scope of delegated decisions, the available actions, and the stop conditions.*
+
+## 5. Canonical agent model {#concepts}
+
+`Agent = Policy + State + Action Space + Environment Interface + Control Loop + Objective`
+
+```text
+state and objective → policy → proposed action → environment interface
+        ↑                                                │
+        └──────────────── observation ──────────────────┘
+```
+
+The controller incorporates observations into state and applies the termination rule.
+
+## 6. Policy, state, action space, environment, objective
+
+*To develop. Identify the system boundary and distinguish goals, success conditions, and termination.*
+
+## 7. The RL / MDP / POMDP connection
+
+*To develop. Connect ML policies and feedback control to the decision models introduced in [Block 02](02-agent-loop-state-machines.qmd).*
+
+## 8. Autonomy vs agency
+
+*To develop. Examine agency under bounded delegation and authority retained by a person or controller.*
+
+## 9. When to use a fixed workflow
+
+*To develop. Compare fixed and adaptive control when requirements are known, predictable, or costly to verify.*
+
+## 10. AutoResearch example
+
+### Study task
+
+For the [AutoResearch case](../case-studies/autoresearch.qmd), draw one-shot prediction, fixed candidate search, and adaptive candidate search. Mark who chooses the next action and where each run terminates.
+
+### Deliverable
+
+Produce three diagrams and a table comparing decision authority, termination, and one measurable benefit of added autonomy.
+
+## 11. Production implications
+
+*To develop. Connect decision authority to permissions, reproducibility, failure modes, and operating cost.*
+
+## 12. Interview / system-design mental model
+
+*To develop. Practice identifying the control boundary and proposing a baseline before naming a framework.*
+
+## 13. Companion reading {#companion-reading}
+
+The [primary book companions](../index.qmd#primary-book-companions) support the sequence. Add chapter pointers after the lesson is developed.
+
+## 14. Conceptual questions
+
+1. Which decision separates a tool-using workflow from an agent in your example?
+2. What changes when an action can produce an observation that alters the next action?
+3. How would you identify the environment boundary and success condition in AutoResearch?
+4. What explains the difference between a policy and the system that runs it?
+5. Which failure or cost would lead you to choose fixed control?

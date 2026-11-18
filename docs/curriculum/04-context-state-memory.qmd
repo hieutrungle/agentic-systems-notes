@@ -1,0 +1,55 @@
+---
+title: "Context, State, and Memory"
+aliases:
+  - 05-context-retrieval.html
+  - 06-memory-state.html
+---
+
+Which evidence should enter a model call, and what must survive a restart?
+
+## Concepts
+
+**Context** is the input assembled for a model call. **State** records the current run and determines what transitions are valid. **Memory** is information retained for later use. A transcript can be memory, a source of context, or part of state if the controller relies on it. Define that role explicitly for each record.
+
+| Layer | Examples | Design question |
+|---|---|---|
+| Context | Prompt, working notes, selected conversation history, evidence snippets | What can fit in the context window and support this decision? |
+| State | Current stage, pending actions, budget, incumbent, checkpoint version | What is authoritative for execution and restart? |
+| Memory | Short-lived notes, episodic trial histories, semantic knowledge, persistent user preferences | What should be retained, retrieved, revised, or deleted? |
+
+```text
+checkpoint store ── selected state ──┐
+documents → retrieval → evidence ────┼→ prompt assembly → model
+conversation → trim or summarize ────┘
+```
+
+### Retrieval, compression, and recovery
+
+Follow documents from indexing through retrieval and prompt assembly. Use a database for authoritative records. A vector store can index related evidence for discovery. A summary compresses context at the cost of some detail. Keep source IDs and versions, and check whether omitted conditions change a decision. Measure retrieval recall separately from answer quality [@lewis2020rag]. Reflexion gives an example of episodic feedback reused across trials [@shinn2023reflexion].
+
+Give each durable record an owner, version, and retention rule. Protect checkpoint writes against stale workers. Reload pending operations and committed decisions on restart. Rebuild the prompt from selected records after verifying that the evidence versions still apply. Keep sealed evaluation results outside the proposer context.
+
+### AutoResearch
+
+The ledger can hold every trial while the proposer sees selected prior results, the current baseline, and the remaining compute budget. The controller keeps the accepted configuration and operation IDs in a durable checkpoint, even when a prompt omits them. A summary that drops the scorer version can make two incomparable scores look like progress.
+
+## Study task
+
+Select three of ten experiment records for the proposer. Repeat with a summary and record which conditions disappear. Define a checkpoint after the second trial and identify fields needed to resume without rescoring or accepting a stale candidate.
+
+## Deliverable
+
+Submit two context snapshots with provenance, a test for evidence lost during prompt assembly, and a checkpoint schema with before-and-after examples for restart and schema evolution.
+
+## Companion reading
+
+- *AI Agents in Action, Second Edition*, chapter 6, for retrieval and memory [@lanham2026aiagents].
+- *Building Applications with AI Agents*, chapter 6, for context windows, semantic search, and retrieval-augmented generation [@albada2025applications].
+
+## Conceptual questions
+
+1. Which fields must persist even if the model never sees them?
+2. What observation would show that compression removed a critical condition?
+3. When would key-based retrieval be preferable to vector search?
+4. How can two workers determine whose checkpoint update is valid?
+5. How would you expire a user memory without breaking reproduction of an older run?
