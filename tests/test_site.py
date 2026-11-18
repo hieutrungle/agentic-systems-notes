@@ -1,4 +1,4 @@
-"""Check page coverage and local links in the generated Pages artifact."""
+"""Check pages, local links, bibliography, and dark-theme contrast."""
 
 import re
 import sys
@@ -12,6 +12,7 @@ class Page(HTMLParser):
         super().__init__()
         self.local_links: list[str] = []
         self.anchors: set[str] = set()
+        self.dark_stylesheet: str | None = None
         self.feed(path.read_text(encoding="utf-8"))
 
     def handle_starttag(self, tag, attrs):
@@ -21,6 +22,62 @@ class Page(HTMLParser):
         attribute = {"a": "href", "img": "src", "video": "src", "source": "src"}.get(tag)
         if attribute and (value := attributes.get(attribute)):
             self.local_links.append(value)
+        if (
+            tag == "link"
+            and attributes.get("id") == "quarto-bootstrap"
+            and attributes.get("data-mode") == "dark"
+            and "quarto-color-alternate" in attributes.get("class", "").split()
+        ):
+            self.dark_stylesheet = attributes.get("href")
+
+
+def css_value(css: str, selector: str, property_name: str) -> str:
+    """Read a declaration from a known rule in Quarto's compiled CSS."""
+    rules = re.findall(rf"(?:^|[{{}}]|,\s*){re.escape(selector)}\s*\{{([^{{}}]*)\}}", css)
+    for rule in reversed(rules):
+        value = re.search(rf"(?:^|;)\s*{re.escape(property_name)}:\s*([^;]+)", rule)
+        if value:
+            return value[1].strip()
+    return ""
+
+
+def luminance(hex_color: str) -> float:
+    digits = hex_color[1:]
+    if len(digits) == 3:
+        digits = "".join(digit * 2 for digit in digits)
+    channels = [int(digits[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    linear = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in channels]
+    return sum(v * weight for v, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+
+
+def check_dark_theme(site: Path, lesson: Path, page: Page) -> list[str]:
+    if not page.dark_stylesheet:
+        return ["Block 01 must load an alternate dark Bootstrap stylesheet."]
+    stylesheet = (lesson.parent / page.dark_stylesheet).resolve()
+    if not stylesheet.is_relative_to(site) or not stylesheet.is_file():
+        return [f"Missing dark Bootstrap stylesheet {page.dark_stylesheet}"]
+
+    css = stylesheet.read_text(encoding="utf-8")
+    body = re.search(r"--bs-body-bg:\s*(#[0-9a-fA-F]+)[;} ]", css)
+    body_bg = body[1] if body else ""
+    code_bg = css_value(css, "main.content pre:not(.sourceCode,.mermaid-js)", "background-color")
+    colors = (
+        ("plain fenced code", css_value(css, "pre", "color"), code_bg),
+        ("sidebar links", css_value(css, "div.sidebar-item-container", "color"), body_bg),
+        ("table of contents", css_value(css, "#TOC", "color"), body_bg),
+    )
+    errors = []
+    if css_value(css, "pre code", "color") != "inherit":
+        errors.append("Code inside pre must inherit the explicit pre foreground.")
+    for label, foreground, background in colors:
+        if any(not re.fullmatch(r"#(?:[0-9a-f]{3}){1,2}", color, re.I) for color in (foreground, background)):
+            errors.append(f"Missing explicit dark-mode colors for {label}.")
+            continue
+        low, high = sorted((luminance(foreground), luminance(background)))
+        contrast = (high + 0.05) / (low + 0.05)
+        if contrast < 4.5:
+            errors.append(f"Dark-mode contrast for {label} is {contrast:.2f}:1, below 4.5:1.")
+    return errors
 
 
 def check_site(site: Path, source: Path) -> list[str]:
@@ -71,6 +128,10 @@ def check_site(site: Path, source: Path) -> list[str]:
             if f'id="ref-{key}"' not in index:
                 errors.append(f"Missing rendered bibliography entry {key}")
 
+    lesson = site / "curriculum/01-agent-fundamentals.html"
+    if lesson in pages:
+        errors.extend(check_dark_theme(site, lesson, pages[lesson]))
+
     return errors
 
 
@@ -80,4 +141,4 @@ if __name__ == "__main__":
     errors = check_site(site, source)
     if errors:
         sys.exit("\n".join(errors))
-    print("Verified rendered pages, local links, and bibliography entries.")
+    print("Verified rendered pages, local links, bibliography entries, and dark-theme contrast.")

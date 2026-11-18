@@ -7,10 +7,10 @@ $headings-color: $primary;
 $line-height-base: 1.65;
 $link-hover-color: $primary;
 $navbar-bg: $body-bg;
-$navbar-fg: $text-muted;
+$navbar-fg: $blog-nav-text;
 $navbar-hl: $primary;
 $sidebar-bg: $body-bg;
-$sidebar-fg: $text-muted;
+$sidebar-fg: $blog-nav-text;
 $sidebar-hl: $primary;
 $footer-bg: $body-bg;
 $footer-fg: $text-muted;
@@ -76,6 +76,64 @@ main blockquote {
   background: $blog-highlight;
   border-left-color: $blog-gold;
   color: $body-color;
+}
+
+@if $blog-scheme == dark {
+  // Quarto clears the generic pre surface. Pandoc's highlighted blocks have
+  // their own wrapper and per-token colors.
+  main.content pre:not(.sourceCode, .mermaid-js) {
+    background-color: $code-block-bg;
+    border: 1px solid $blog-border-subtle;
+    padding: $code-block-bg-padding;
+  }
+
+  #quarto-sidebar .sidebar-title,
+  #quarto-sidebar .sidebar-item-toggle {
+    color: $blog-nav-title;
+    font-weight: 600;
+  }
+
+  #TOC {
+    color: $blog-toc-text;
+  }
+
+  #quarto-sidebar .sidebar-link.active,
+  #TOC a.nav-link.active,
+  .navbar-nav .nav-link.active {
+    font-weight: 600;
+  }
+
+  #quarto-sidebar .sidebar-link:is(:hover, :focus-visible),
+  #TOC a.nav-link:is(:hover, :focus-visible),
+  .navbar-nav .nav-link:is(:hover, :focus-visible),
+  .quarto-page-breadcrumbs a:hover,
+  .nav-page a:hover,
+  .nav-footer a:hover,
+  main.content a[href]:not(.anchorjs-link):is(:hover, :focus-visible) {
+    text-decoration: underline;
+  }
+
+  @include media-breakpoint-down(lg) {
+    #quarto-sidebar .sidebar-menu-container {
+      white-space: normal;
+    }
+  }
+
+  .csl-entry a {
+    overflow-wrap: anywhere;
+  }
+
+  main hr {
+    border-color: $border-color;
+    opacity: 1;
+  }
+
+  // Mermaid's generated figure stylesheet still paints HTML edge-label
+  // backgrounds independently of Quarto's theme-aware SVG rules.
+  #quarto-document-content svg.mermaid-js .edgeLabel :is(.labelBkg, p) {
+    color: var(--mermaid-edge-color);
+    background-color: var(--mermaid-label-bg-color);
+  }
 }
 
 .cell[data-file$=".dot"] svg {
