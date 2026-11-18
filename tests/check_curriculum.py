@@ -88,24 +88,33 @@ class RenderedPage(HTMLParser):
         self.heading: list[str] = []
         self.sidebar: list[str] = []
         self.pagination: list[str] = []
+        self.breadcrumbs: list[list[str]] = []
         self.in_heading = False
+        self.in_breadcrumb = False
         self.feed(html)
 
     def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        classes = attributes.get("class", "").split()
         if tag == "h1":
             self.in_heading = True
+        if tag == "nav" and "quarto-page-breadcrumbs" in classes:
+            self.in_breadcrumb = True
+            self.breadcrumbs.append([])
         if tag == "a":
-            attributes = dict(attrs)
-            classes = attributes.get("class", "").split()
-            href = attributes.get("href", "")
+            target = posixpath.normpath(posixpath.join("curriculum", attributes.get("href", "")))
             if "sidebar-link" in classes:
-                self.sidebar.append(posixpath.normpath(posixpath.join("curriculum", href)))
+                self.sidebar.append(target)
             if "pagination-link" in classes:
-                self.pagination.append(posixpath.normpath(posixpath.join("curriculum", href)))
+                self.pagination.append(target)
+            if self.in_breadcrumb:
+                self.breadcrumbs[-1].append(target)
 
     def handle_endtag(self, tag):
         if tag == "h1":
             self.in_heading = False
+        if tag == "nav":
+            self.in_breadcrumb = False
 
     def handle_data(self, data):
         if self.in_heading:
@@ -130,6 +139,9 @@ def check_local_site(site: Path, blocks: list[Block]) -> None:
         expected = pages[number - 1:number] + pages[number + 1:number + 2]
         if rendered.sidebar != pages or rendered.pagination != expected:
             raise ValueError(f"Sidebar or previous/next navigation drift in {block.page}.")
+        expected_breadcrumb = [pages[0], pages[number]]
+        if not rendered.breadcrumbs or any(crumb != expected_breadcrumb for crumb in rendered.breadcrumbs):
+            raise ValueError(f"Breadcrumb in {block.page} must link to the curriculum index and then the lesson.")
         for alias in block.aliases:
             redirect = (site / "curriculum" / alias).read_text(encoding="utf-8")
             # Quarto 1.11 emits the alias targets as a JSON map in its redirect template.
@@ -168,7 +180,7 @@ def main() -> None:
 
     checks = "canonical pages and numbering"
     if args.site:
-        checks += ", sidebar, pagination, and legacy redirects"
+        checks += ", sidebar, breadcrumbs, pagination, and legacy redirects"
     if args.blog_roadmap:
         checks += ", and blog roadmap parity"
     print(f"Verified {len(blocks)} blocks: {checks}.")

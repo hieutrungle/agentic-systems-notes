@@ -47,7 +47,8 @@ website:
           contents:
             - text: Overview
               href: curriculum/index.qmd
-            - auto: "curriculum/*.qmd"
+            # Quarto flattens a glob beginning with * inside the directory.
+            - auto: "curriculum/*[0-9][0-9]-*.qmd"
 
 bibliography: references.bib
 execute:
