@@ -52,7 +52,7 @@ const adaptiveTrials = [["A", "0.81"], ["B′", "0.84"], ["C′", "0.82"]];
 const choices = [
   "Start with A. Later configurations are still undecided.",
   "A scored 0.81. Use that result to choose B′.",
-  "B′ scored 0.84. Choose a replication, C′, with a new seed.",
+  "B′ scored 0.84. Use that result to choose the targeted follow-up C′.",
 ];
 
 function comparisonStage(title, fixedNode, fixedEdge, adaptiveNode, adaptiveEdge, completed, chosen, active, fixed, adaptive, duration = 2800) {
@@ -64,7 +64,7 @@ function comparisonStage(title, fixedNode, fixedEdge, adaptiveNode, adaptiveEdge
 
 function comparisonStages() {
   const stages = [
-    comparisonStage("Set the experiment horizon", "choose", null, "choose", null, 0, 1, 0,
+    comparisonStage("Plan and choose the first trial", "choose", null, "choose", null, 0, 1, [0, 0],
       "A, B, and C are already on the schedule.", choices[0]),
   ];
 
@@ -73,24 +73,24 @@ function comparisonStages() {
     const trial = index + 1;
     stages.push(
       comparisonStage("Run trial " + trial, "run", "choose-run", "run", "choose-run",
-        index, trial, index, "Run " + config + " from the fixed list.", "Run the chosen configuration " + adaptiveConfig + "."),
+        index, trial, [index, index], "Run " + config + " from the fixed list.", "Run the chosen configuration " + adaptiveConfig + "."),
       comparisonStage("Observe trial " + trial, "observe", "run-observe", "observe", "run-observe",
-        trial, trial, index, config + " scored " + score + ". The schedule is unchanged.",
+        trial, trial, [index, index], config + " scored " + score + ". The schedule is unchanged.",
         adaptiveConfig + " scored " + adaptiveScore + ". Return it to the controller."),
-      comparisonStage("Record trial " + trial, "observe", null, "update", "observe-update",
-        trial, trial, index, "Record the score for final selection.",
-        "Update the controller’s record with " + adaptiveConfig + " = " + adaptiveScore + "."),
+      comparisonStage("Record / update trial " + trial + " result", "record", "observe-record", "update", "observe-update",
+        trial, trial, [index, index], "Record " + config + " = " + score + " for final selection.",
+        "Update state with " + adaptiveConfig + " = " + adaptiveScore + "."),
     );
 
     if (trial < fixedTrials.length) {
       stages.push(comparisonStage("Choose trial " + (trial + 1), "choose", null, "choose", "feedback",
-        trial, trial + 1, trial, fixedTrials[trial][0] + " was chosen before execution.", choices[trial], 3600));
+        trial, trial + 1, [trial, trial], fixedTrials[trial][0] + " was chosen before execution.", choices[trial], 3600));
     }
   }
 
-  stages.push(comparisonStage("Reach the fixed horizon", "end", "observe-end", "update", null,
-    3, 3, -1, "Stop at three trials and select C (0.83).",
-    "Stop at three trials and select B′ (0.84). Feedback already shaped the trajectory.", 3200));
+  stages.push(comparisonStage("Trial cap reached — stop and select", "end", "record-end", "end", "update-end",
+    3, 3, [2, 1], "Stop at three trials and select C (0.83).",
+    "Stop at three trials and select B′ (0.84).", 3200));
 
   return stages;
 }
@@ -157,17 +157,18 @@ function experimentReadout(root) {
   const scores = [...root.querySelectorAll("[data-score]")];
   const trials = [...root.querySelectorAll(".agent-trials li")];
   return (stage, shown) => {
-    fixed.textContent = shown.fixed;
+    fixed.textContent = stage.fixed;
     adaptive.textContent = shown !== stage && stage.tracks[1].edge === "feedback"
       ? "The last score travels back to the chooser."
-      : shown.adaptive;
+      : stage.adaptive;
     configs.forEach((field, index) => {
       field.textContent = index < shown.chosen ? adaptiveTrials[index][0] : "Undecided";
     });
     [...fixedTrials, ...adaptiveTrials].forEach(([, score], index) => {
       const trial = index % fixedTrials.length;
+      const panel = Math.floor(index / fixedTrials.length);
       scores[index].textContent = trial < shown.completed ? score : "—";
-      if (trial === shown.active) trials[index].setAttribute("aria-current", "step");
+      if (trial === stage.active[panel]) trials[index].setAttribute("aria-current", "step");
       else trials[index].removeAttribute("aria-current");
     });
   };
