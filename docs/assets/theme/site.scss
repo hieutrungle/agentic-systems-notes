@@ -57,6 +57,10 @@ body :focus-visible {
   font-weight: 500;
 }
 
+.navbar-nav.ms-auto {
+  --bs-nav-link-color: #{$blog-parent-nav-text};
+}
+
 .quarto-title h1 {
   font-size: clamp(2.25rem, 4.5vw, 3.15rem);
   line-height: 1.1;
@@ -70,6 +74,58 @@ body :focus-visible {
 .sidebar-title {
   font-family: $font-family-sans-serif;
   font-weight: 600;
+}
+
+#quarto-sidebar .sidebar-item-toggle,
+#quarto-sidebar .sidebar-link.active,
+#TOC a.nav-link.active,
+.navbar-nav .nav-link.active {
+  font-weight: 600;
+}
+
+main.content :where(p, li, dd, .csl-entry) {
+  overflow-wrap: anywhere;
+}
+
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar .sidebar-menu-container {
+    white-space: normal;
+  }
+
+  .quarto-secondary-nav nav.quarto-page-breadcrumbs {
+    margin-left: 0.35rem;
+  }
+
+  .quarto-secondary-nav .breadcrumb {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .quarto-secondary-nav .breadcrumb-item {
+    display: inline;
+  }
+
+  .quarto-secondary-nav .breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    float: none;
+    color: $text-muted;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  // Keep unwrapped Pandoc tables within the article while retaining their columns.
+  main.content table:not(.table-responsive table) {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .page-navigation .nav-page {
+    min-width: 0;
+  }
+
+  .page-navigation .nav-page-text {
+    overflow-wrap: anywhere;
+  }
 }
 
 main blockquote {
@@ -90,17 +146,10 @@ main blockquote {
   #quarto-sidebar .sidebar-title,
   #quarto-sidebar .sidebar-item-toggle {
     color: $blog-nav-title;
-    font-weight: 600;
   }
 
   #TOC {
     color: $blog-toc-text;
-  }
-
-  #quarto-sidebar .sidebar-link.active,
-  #TOC a.nav-link.active,
-  .navbar-nav .nav-link.active {
-    font-weight: 600;
   }
 
   #quarto-sidebar .sidebar-link:is(:hover, :focus-visible),
@@ -111,16 +160,6 @@ main blockquote {
   .nav-footer a:hover,
   main.content a[href]:not(.anchorjs-link):is(:hover, :focus-visible) {
     text-decoration: underline;
-  }
-
-  @include media-breakpoint-down(lg) {
-    #quarto-sidebar .sidebar-menu-container {
-      white-space: normal;
-    }
-  }
-
-  .csl-entry a {
-    overflow-wrap: anywhere;
   }
 
   main hr {

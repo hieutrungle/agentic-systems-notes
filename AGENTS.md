@@ -12,6 +12,7 @@
 - [Hieu T. Le](https://hieutrungle.github.io/) is the main identity. The [blog](https://hieutrungle.github.io/blog/) and its [Learning hub](https://hieutrungle.github.io/blog/learning/) provide public discovery. The [Agentic Systems gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) introduces the series. The [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/) publishes the full curriculum, literature, labs, exercises, and case study from this repository.
 - Use [`hieutrungle/llm-post-training-notes`](https://github.com/hieutrungle/llm-post-training-notes) as a read-only precedent for keeping exploratory notes separate from publishable material, checking results and figures, centralizing citations, and recording errata. Use [`hieutrungle/blog`](https://github.com/hieutrungle/blog) as the visual reference for colors, typography, and parent navigation. Adapt those choices to Quarto's components.
 - Keep the blog gateway concise. When a curriculum title or URL changes, coordinate the roadmap in the blog's `_data/series/agentic-systems.yml` with the curriculum index here.
+- The site's visual system is stable. Preserve its typography, palette, navigation, layout, and theme architecture unless the project owner explicitly requests a redesign. Prioritize course content, research, labs, diagrams, and learning materials.
 
 ## Teaching protocol
 

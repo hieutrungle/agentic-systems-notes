@@ -43,8 +43,11 @@ website:
       title: Curriculum
       style: docked
       contents:
-        - curriculum/index.qmd
-        - auto: "curriculum/[0-9]*.qmd"
+        - section: Curriculum
+          contents:
+            - text: Overview
+              href: curriculum/index.qmd
+            - auto: "curriculum/*.qmd"
 
 bibliography: references.bib
 execute:
