@@ -30,6 +30,7 @@
         <li><span>B</span><b data-score>0.79</b></li>
         <li><span>C</span><b data-score>0.83</b></li>
       </ol>
+      <p class="agent-experiment-message" data-experiment-message>The scores decide the winner, C. The run order was fixed.</p>
     </section>
     <section class="agent-panel" aria-labelledby="agent-adaptive-title">
       <h3 id="agent-adaptive-title">Adaptive search</h3>
@@ -62,11 +63,8 @@
         <li><span data-config>B′</span><b data-score>0.84</b></li>
         <li><span data-config>C′</span><b data-score>0.82</b></li>
       </ol>
+      <p class="agent-experiment-message" data-experiment-message>A’s score informs B′. B′’s score informs the targeted follow-up C′. B′ wins after trial 3.</p>
     </section>
-    <div class="agent-comparison-readout" role="group" aria-label="Current stage comparison">
-      <p><strong>Fixed batch</strong><span data-experiment-message>The scores decide the winner, C. The run order was fixed.</span></p>
-      <p><strong>Adaptive search</strong><span data-experiment-message>A’s score informs B′. B′’s score informs the targeted follow-up C′. B′ wins after trial 3.</span></p>
-    </div>
   </div>
   <p class="agent-figure-note"><strong>Fixed horizon ≠ open loop.</strong> Both runs stop after three experiments. The adaptive run can still change which configuration it tries next.</p>
   <div class="agent-controls" data-controls hidden role="group" aria-label="Experiment comparison controls">

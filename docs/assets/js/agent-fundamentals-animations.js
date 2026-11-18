@@ -85,12 +85,12 @@ function comparisonStages() {
     );
 
     if (trial < fixedTrials.length) {
-      stages.push(comparisonStage("Advance the list and choose adaptive trial " + (trial + 1), "run", null, "choose", "feedback",
+      stages.push(comparisonStage("Choose trial " + (trial + 1), "choose", null, "choose", "feedback",
         trial, trial + 1, [trial, trial], fixedTrials[trial][0] + " was chosen before execution.", choices[trial], 3600));
     }
   }
 
-  stages.push(comparisonStage("Both stop at three trials and select a winner", "end", "record-end", "end", "update-end",
+  stages.push(comparisonStage("Trial cap reached — stop and select", "end", "record-end", "end", "update-end",
     3, 3, [2, 1], "Stop at three trials and select C (0.83).",
     "Stop at three trials and select B′ (0.84).", 3200));
 
@@ -323,37 +323,44 @@ function mountLessonToc() {
 }
 
 function mountOverview(overview) {
-  let preview;
+  const nodes = [...overview.querySelectorAll("button[aria-controls]")];
+  const panels = overview.querySelectorAll("[data-overview-panel]");
+  let selected = nodes[0];
+  let displayed;
 
-  function dismissPreview() {
-    if (!preview) return;
-    preview.open = false;
-    preview = undefined;
+  function show(node) {
+    displayed = node;
+    const panelId = node.getAttribute("aria-controls");
+    for (const item of nodes) {
+      item.classList.toggle("is-active", item === node);
+      item.setAttribute("aria-pressed", item === selected);
+    }
+    for (const panel of panels) panel.hidden = panel.id !== panelId;
   }
 
-  for (const stage of overview.querySelectorAll("details")) {
-    stage.addEventListener("pointerenter", (event) => {
-      if (event.pointerType !== "mouse" || stage.open) return;
-      dismissPreview();
-      stage.open = true;
-      preview = stage;
+  for (const node of nodes) {
+    node.setAttribute("aria-describedby", node.getAttribute("aria-controls"));
+    node.disabled = false;
+    node.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse") show(node);
     });
-
-    stage.querySelector("summary").addEventListener("click", (event) => {
-      if (preview !== stage) return;
-      preview = undefined;
-      // A pointer click keeps a preview open. Keyboard activation toggles it normally.
-      if (event.detail > 0) event.preventDefault();
+    node.addEventListener("focus", () => show(node));
+    node.addEventListener("click", () => {
+      selected = node;
+      show(node);
     });
   }
 
-  overview.addEventListener("pointerleave", dismissPreview);
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || event.defaultPrevented) return;
-    dismissPreview();
-    const activeStage = document.activeElement?.closest("details[open]");
-    if (activeStage && overview.contains(activeStage)) activeStage.open = false;
+  overview.addEventListener("pointerleave", () => show(selected));
+  overview.addEventListener("focusout", (event) => {
+    if (!overview.contains(event.relatedTarget)) show(selected);
   });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && displayed !== selected) show(selected);
+  });
+
+  overview.querySelector("[data-overview-hint]").hidden = false;
+  show(selected);
 }
 
 for (const overview of document.querySelectorAll("[data-agent-overview]")) {

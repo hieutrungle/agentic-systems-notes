@@ -239,7 +239,7 @@ AutoResearch runs as one bounded controller. It sets up the protocol once, repea
 
 ```
 
-The path through an approved AutoResearch trial. Validation scores guide the search. The reserved holdout evaluates the final selection after the search stops.
+AutoResearch control loop. Follow Continue back to context building with the updated ledger, or Stop out to the final holdout evaluation.
 
 :::
 

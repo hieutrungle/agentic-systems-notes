@@ -1,68 +1,90 @@
 <div class="agent-animation agent-overview" data-agent-overview>
-  <p class="agent-overview-hint">Hover over a block for details, or select it with a click, tap, or Enter.</p>
+  <p class="agent-overview-hint" data-overview-hint hidden>Hover, focus, or tap a block for details.</p>
   <div class="agent-overview-layout">
-    <div class="agent-overview-flow" aria-label="AutoResearch control flow" role="group">
-      <p class="agent-overview-phase">Set up once</p>
-      <ol class="agent-overview-setup" role="list">
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Fix the protocol <span>Runtime</span></summary>
-            <p>Pin the baseline, validation metric, allowed operations, and compute and trial limits. Reserve a separate holdout for final evaluation.</p>
-          </details>
-        </li>
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Start the ledger <span>Runtime</span></summary>
-            <p>Record the baseline as the initial incumbent, its score, remaining compute, and zero pending jobs. The ledger will track what each trial did and cost.</p>
-          </details>
-        </li>
-      </ol>
-      <p class="agent-overview-phase agent-overview-down">Repeat one trial at a time</p>
-      <ol class="agent-overview-loop" role="list">
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Build context <span>Runtime</span></summary>
-            <p>Give the model the goal, relevant ledger entries, latest results, and available operations. On the next turn these inputs reflect the previous trial.</p>
-          </details>
-        </li>
-        <li>
-          <details class="agent-overview-policy" name="autoresearch-stage">
-            <summary>Propose a trial <span>Learned policy</span></summary>
-            <p>Choose a configuration that tests a hypothesis, or replicate a promising result. The output is a proposed experiment with arguments such as learning rate and seed.</p>
-          </details>
-        </li>
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Authorize <span>Runtime</span></summary>
-            <p>Check the arguments, permissions, and compute reservation. Only an approved request can reach the scheduler. A rejected or paused request leaves the job unsubmitted.</p>
-          </details>
-        </li>
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Run and score <span>Executor / scorer</span></summary>
-            <p>The executor submits the approved request. The scheduler assigns a job ID, workers train the candidate, and the fixed evaluator returns a validation score.</p>
-          </details>
-        </li>
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Record result <span>Runtime</span></summary>
-            <p>Record the outcome and measured cost, clear the completed job, and promote the candidate if it beats the incumbent and passes the protocol checks. The updated ledger feeds later choices.</p>
-          </details>
-        </li>
-        <li>
-          <details name="autoresearch-stage">
-            <summary>Check limits <span>Runtime</span></summary>
-            <p>Apply the trial cap, compute limit, and other stop conditions. Continue by building context from the updated ledger, or end the search and freeze the incumbent.</p>
-          </details>
-        </li>
-      </ol>
-      <p class="agent-overview-repeat"><span aria-hidden="true">↺</span> Continue → Build context with the updated ledger</p>
-      <p class="agent-overview-phase agent-overview-down">When the search stops</p>
-      <details name="autoresearch-stage">
-        <summary>Evaluate the final selection <span>Fixed evaluator</span></summary>
-        <p>Freeze the selected configuration, then score it on the reserved holdout. The holdout result assesses the frozen selection and stays out of the proposal loop.</p>
-      </details>
+    <div class="agent-overview-graph" role="group" aria-label="AutoResearch architecture" aria-describedby="autoresearch-flow-description">
+      <p id="autoresearch-flow-description" class="visually-hidden">Fix the protocol and start the ledger once. For each trial, build context, propose a trial, authorize it, run and score it, record the result, and check the limits. On continue, the updated ledger feeds back into context. On stop, the fixed evaluator scores the frozen selection on the holdout.</p>
+      <svg class="agent-overview-wires" viewBox="0 0 356 426" aria-hidden="true">
+        <defs>
+          <marker id="autoresearch-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0 0 8 4 0 8Z" fill="var(--agent-wire)"/>
+          </marker>
+          <marker id="autoresearch-feedback-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/>
+          </marker>
+        </defs>
+        <rect class="agent-overview-loop-boundary" x="39" y="81" width="316" height="256" rx="9"/>
+        <text class="agent-overview-loop-label" x="342" y="98" text-anchor="end">Trial loop</text>
+        <g class="agent-overview-edges" marker-end="url(#autoresearch-arrow)">
+          <path d="M176 30H219"/>
+          <path d="M282 54V66H114V106"/>
+          <path d="M176 132H219"/>
+          <path d="M282 156V190"/>
+          <path d="M282 240V274"/>
+          <path d="M220 300H177"/>
+          <path d="M114 275V241"/>
+          <path d="M52 216H20V391H51"/>
+        </g>
+        <path class="agent-overview-feedback" d="M114 191V157" marker-end="url(#autoresearch-feedback-arrow)"/>
+        <text class="agent-overview-edge-label agent-overview-continue-label" x="124" y="178">Continue</text>
+        <text class="agent-overview-edge-label" x="289" y="261">Approved</text>
+        <text class="agent-overview-edge-label" x="27" y="359">Stop</text>
+      </svg>
+      <button type="button" style="--x: 52; --y: 5" aria-controls="autoresearch-protocol" disabled>Fix protocol</button>
+      <button type="button" style="--x: 220; --y: 5" aria-controls="autoresearch-ledger" disabled>Start ledger</button>
+      <button type="button" style="--x: 52; --y: 107" aria-controls="autoresearch-context" disabled>Build context</button>
+      <button type="button" class="agent-overview-policy" style="--x: 220; --y: 107" aria-controls="autoresearch-proposal" disabled>Propose trial</button>
+      <button type="button" class="agent-overview-gate" style="--x: 220; --y: 191" aria-controls="autoresearch-authorization" disabled>Authorize trial</button>
+      <button type="button" style="--x: 220; --y: 275" aria-controls="autoresearch-execution" disabled>Run and score</button>
+      <button type="button" style="--x: 52; --y: 275" aria-controls="autoresearch-result" disabled>Record result</button>
+      <button type="button" style="--x: 52; --y: 191" aria-controls="autoresearch-limits" disabled>Check limits</button>
+      <button type="button" style="--x: 52; --y: 366; --w: 292" aria-controls="autoresearch-holdout" disabled>Evaluate final holdout</button>
     </div>
-    <p class="agent-overview-default">What changes between trials? A validation result updates the ledger. If the search continues, the updated ledger can change the next proposal.</p>
+    <div class="agent-overview-info">
+      <section id="autoresearch-protocol" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Fix protocol</p>
+        <p>Pin the baseline, validation metric, permissions, and limits. Reserve the holdout for final evaluation.</p>
+      </section>
+      <section id="autoresearch-ledger" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Start ledger</p>
+        <p>Record the baseline as the incumbent. Note its score, the compute budget, and any pending jobs.</p>
+      </section>
+      <section id="autoresearch-context" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Build context</p>
+        <p>Give the policy the goal, the available operations, and relevant ledger entries such as the latest score and remaining compute.</p>
+      </section>
+      <section id="autoresearch-proposal" data-overview-panel>
+        <p class="agent-overview-owner">Learned policy</p>
+        <p class="agent-overview-title">Propose trial</p>
+        <p>Choose a configuration to test a hypothesis or replicate a gain. Return the proposed arguments, such as learning rate and seed.</p>
+      </section>
+      <section id="autoresearch-authorization" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Authorize trial</p>
+        <p>Check arguments, permissions, and compute. An approved request can proceed to dispatch. A rejection or pause leaves the job unsubmitted.</p>
+      </section>
+      <section id="autoresearch-execution" data-overview-panel>
+        <p class="agent-overview-owner">Executor and evaluator</p>
+        <p class="agent-overview-title">Run and score</p>
+        <p>The executor submits the approved request. The scheduler assigns a job ID, workers train the configuration, and the evaluator returns a validation score.</p>
+      </section>
+      <section id="autoresearch-result" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Record result</p>
+        <p>Update the ledger with the score and cost. Promote a candidate that beats the incumbent and passes the protocol checks.</p>
+      </section>
+      <section id="autoresearch-limits" data-overview-panel>
+        <p class="agent-overview-owner">Runtime</p>
+        <p class="agent-overview-title">Check limits</p>
+        <p>Apply the trial cap and compute limit. Continue by building context from the updated ledger, or stop and freeze the incumbent.</p>
+      </section>
+      <section id="autoresearch-holdout" data-overview-panel>
+        <p class="agent-overview-owner">Fixed evaluator</p>
+        <p class="agent-overview-title">Evaluate final holdout</p>
+        <p>Score the frozen selection on reserved data. This score assesses the final choice and stays outside the search loop.</p>
+      </section>
+    </div>
   </div>
 </div>
