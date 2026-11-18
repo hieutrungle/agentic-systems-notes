@@ -1,4 +1,4 @@
-# Agentic Systems Notes
+# Agentic Systems
 
 A 14-block research and study curriculum on tool-using AI systems. Follow the [curriculum](docs/curriculum/index.qmd), read the [literature reviews and paper notes](docs/literature/index.qmd), and apply each block to the [AutoResearch case study](docs/case-studies/autoresearch.qmd).
 

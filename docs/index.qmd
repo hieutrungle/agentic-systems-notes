@@ -1,5 +1,5 @@
 ---
-title: "Agentic Systems Notes"
+title: "Agentic Systems"
 subtitle: "Engineering reliable, scalable, production-grade AI agents"
 ---
 

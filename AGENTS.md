@@ -1,4 +1,4 @@
-# Agentic Systems Notes contributor guide
+# Agentic Systems contributor guide
 
 ## Working in this repository
 

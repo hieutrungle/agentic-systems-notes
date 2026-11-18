@@ -13,7 +13,7 @@ project:
     - case-studies/*.qmd
 
 website:
-  title: Agentic Systems Notes
+  title: Agentic Systems
   page-navigation: true
   navbar:
     title: Agentic Systems
