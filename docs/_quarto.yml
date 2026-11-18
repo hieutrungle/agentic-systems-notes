@@ -4,6 +4,7 @@ project:
   resources:
     - assets/animations/autoresearch-loop.mp4
     - assets/js/agent-fundamentals-animations.js
+    - assets/js/agent-loop-animations.js
   render:
     - index.qmd
     - curriculum/*.qmd

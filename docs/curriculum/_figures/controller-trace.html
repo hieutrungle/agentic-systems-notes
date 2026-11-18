@@ -1,0 +1,57 @@
+<div class="agent-animation loop-trace" data-loop-trace>
+  <p class="agent-figure-kicker">Schematic trace · reproduced by <code>python -m labs.controller</code></p>
+  <div class="loop-scenarios" role="group" aria-label="Trace scenario" data-scenarios hidden>
+    <button type="button" data-scenario="ordinary" aria-pressed="true" aria-controls="loop-trace-readout">Ordinary trial</button>
+    <button type="button" data-scenario="lost-score" aria-pressed="false" aria-controls="loop-trace-readout">Lost score reply</button>
+  </div>
+  <ol class="loop-path" aria-label="Modes visited" data-path>
+    <li class="is-current" aria-current="step"><span>Ready</span></li>
+  </ol>
+  <div class="loop-readout" id="loop-trace-readout">
+    <div class="loop-step">
+      <p class="loop-owner" data-owner>Start</p>
+      <p class="loop-transition" data-transition>Start in Ready</p>
+      <dl class="loop-rule">
+        <div><dt>Event</dt><dd data-event>None yet</dd></div>
+        <div><dt>Guard</dt><dd data-guard>None yet</dd></div>
+        <div><dt>Update</dt><dd data-update>The ledger holds the baseline as the incumbent.</dd></div>
+      </dl>
+      <p class="loop-note" data-note>No trial is in flight, and no context exists yet.</p>
+    </div>
+    <div class="loop-layers">
+      <section class="loop-layer" aria-labelledby="loop-layer-record">
+        <p class="loop-layer-title" id="loop-layer-record">Controller record <i>z</i> · <span data-field="checkpoint">checkpoint 0</span></p>
+        <dl>
+          <div data-field="mode"><dt>Mode</dt><dd>Ready</dd></div>
+          <div data-field="incumbent"><dt>Incumbent</dt><dd>baseline · 0.842</dd></div>
+          <div data-field="compute"><dt>Compute</dt><dd>2.0 GPU-h unspent · 0.0 reserved</dd></div>
+          <div data-field="trials"><dt>Counters</dt><dd>0 of 5 trials · 0 of 10 proposals</dd></div>
+          <div data-field="pending"><dt>Pending</dt><dd>None</dd></div>
+        </dl>
+      </section>
+      <section class="loop-layer" aria-labelledby="loop-layer-external">
+        <p class="loop-layer-title" id="loop-layer-external">External state <i>x</i></p>
+        <dl>
+          <div data-field="scheduler"><dt>Scheduler</dt><dd>No job for this run</dd></div>
+          <div data-field="evaluator"><dt>Evaluator store</dt><dd>baseline · 0.842 (v1)</dd></div>
+        </dl>
+      </section>
+      <section class="loop-layer" aria-labelledby="loop-layer-context">
+        <p class="loop-layer-title" id="loop-layer-context">Policy context <i>c</i><span class="loop-context-tag" data-context-tag></span></p>
+        <div data-field="context"><p class="loop-context">Not built. A context exists only for a policy turn.</p></div>
+      </section>
+    </div>
+  </div>
+  <div class="agent-controls" data-controls hidden role="group" aria-label="Trace controls">
+    <div class="agent-buttons">
+      <button type="button" data-restart aria-label="Restart controller trace" aria-controls="loop-trace-readout">Restart</button>
+      <button type="button" data-previous aria-label="Previous transition" aria-controls="loop-trace-readout">← Step</button>
+      <button type="button" data-play aria-label="Play controller trace" aria-controls="loop-trace-readout">Play</button>
+      <button type="button" data-next aria-label="Next transition" aria-controls="loop-trace-readout">Step →</button>
+    </div>
+    <div class="agent-timeline">
+      <input type="range" min="0" step="1" value="0" data-seek aria-label="Trace stage" aria-controls="loop-trace-readout">
+      <p data-status role="status"></p>
+    </div>
+  </div>
+</div>

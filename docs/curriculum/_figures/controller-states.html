@@ -1,0 +1,85 @@
+<div class="agent-animation loop-states">
+  <div class="loop-states-layout">
+    <svg class="loop-states-diagram" viewBox="0 0 330 614" role="img" aria-labelledby="loop-states-title loop-states-desc">
+      <title id="loop-states-title">AutoResearch controller modes and transitions</title>
+      <desc id="loop-states-desc">The main cycle runs down the center: Ready, Proposing, Authorizing, then Dispatching, Running, and Scoring inside a group labeled Trial in flight. The policy owns two edges from Proposing: trial proposed leads to Authorizing, and stop proposed returns to Ready. Rejected, scored, and resolved also return to Ready along a line on the right. A timeout or restart in any trial-in-flight mode leads to Reconciling, which can resume the trial or resolve it back to Ready. From Ready, the stop rule leads to Stopped. Cancel or deadline from any mode in the Search group also leads to Stopped. Holdout scored leads from Stopped to Done.</desc>
+      <defs>
+        <marker id="loop-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/>
+        </marker>
+        <marker id="loop-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/>
+        </marker>
+      </defs>
+
+      <rect class="loop-group" x="80" y="74" width="244" height="532" rx="10"/>
+      <text class="loop-group-label" x="318" y="92" text-anchor="end">Search</text>
+      <rect class="loop-group loop-group-inner" x="84" y="304" width="184" height="212" rx="9"/>
+      <text class="loop-group-label" x="262" y="320" text-anchor="end">Trial in flight</text>
+
+      <g class="loop-edges" marker-end="url(#loop-arrow)">
+        <path d="M154 134V166"/>
+        <path d="M154 278V326"/>
+        <path d="M154 366V398"/>
+        <path d="M154 438V470"/>
+        <path d="M294 579V115H214"/>
+        <path d="M174 516V558"/>
+        <path d="M134 558V519"/>
+        <path d="M154 96V52"/>
+        <path d="M96 31H76"/>
+        <path class="loop-edge-stop" d="M262 74V31H214"/>
+      </g>
+      <g class="loop-edges">
+        <path d="M212 259H294"/>
+        <path d="M212 491H294"/>
+        <path d="M212 579H294"/>
+      </g>
+      <g class="loop-edges loop-edges-policy">
+        <path d="M154 206V238" marker-end="url(#loop-arrow-policy)"/>
+        <path d="M212 187H294"/>
+      </g>
+
+      <g class="loop-edge-labels">
+        <text x="162" y="154">under limits</text>
+        <text class="loop-policy-label" x="162" y="226">trial proposed</text>
+        <text x="162" y="296">allowed</text>
+        <text x="162" y="386">accepted</text>
+        <text x="162" y="458">job done</text>
+        <text class="loop-policy-label" x="256" y="167" text-anchor="middle">stop</text>
+        <text class="loop-policy-label" x="256" y="181" text-anchor="middle">proposed</text>
+        <text x="253" y="253" text-anchor="middle">rejected</text>
+        <text x="240" y="485" text-anchor="middle">scored</text>
+        <text x="253" y="573" text-anchor="middle">resolved</text>
+        <text x="128" y="541" text-anchor="end">resume</text>
+        <text x="180" y="534">timeout or</text>
+        <text x="180" y="548">restart</text>
+        <text x="162" y="66">stop rule</text>
+        <text x="40" y="68" text-anchor="middle">holdout</text>
+        <text x="40" y="82" text-anchor="middle">scored</text>
+        <text class="loop-stop-label" x="268" y="48">cancel or</text>
+        <text class="loop-stop-label" x="268" y="62">deadline</text>
+      </g>
+
+      <g class="loop-node loop-node-terminal"><rect x="6" y="12" width="68" height="38" rx="7"/><text x="40" y="36">Done</text></g>
+      <g class="loop-node"><rect x="96" y="12" width="116" height="38" rx="7"/><text x="154" y="36">Stopped</text></g>
+      <g class="loop-node"><rect x="96" y="96" width="116" height="38" rx="7"/><text x="154" y="120">Ready</text></g>
+      <g class="loop-node loop-node-policy"><rect x="96" y="168" width="116" height="38" rx="7"/><text x="154" y="192">Proposing</text></g>
+      <g class="loop-node loop-node-gate"><rect x="96" y="240" width="116" height="38" rx="7"/><text x="154" y="264">Authorizing</text></g>
+      <g class="loop-node"><rect x="96" y="328" width="116" height="38" rx="7"/><text x="154" y="352">Dispatching</text></g>
+      <g class="loop-node"><rect x="96" y="400" width="116" height="38" rx="7"/><text x="154" y="424">Running</text></g>
+      <g class="loop-node"><rect x="96" y="472" width="116" height="38" rx="7"/><text x="154" y="496">Scoring</text></g>
+      <g class="loop-node"><rect x="96" y="560" width="116" height="38" rx="7"/><text x="154" y="584">Reconciling</text></g>
+    </svg>
+    <div class="loop-states-key">
+      <p class="loop-key-title">Reading the diagram</p>
+      <ul>
+        <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>The policy chooses this edge.</li>
+        <li><span class="loop-swatch" aria-hidden="true"></span>The gate, scheduler, evaluator, clock, or a controller rule fires this edge.</li>
+        <li><span class="loop-swatch loop-swatch-stop" aria-hidden="true"></span>A hard stop leaves the Search group from any mode inside it.</li>
+        <li><span class="loop-swatch-group" aria-hidden="true"></span>An edge leaving a group applies to every mode in the group.</li>
+      </ul>
+      <p>Every return path enters Ready. The stop rule runs there before each policy turn.</p>
+      <p>Invalid output and failed jobs also return to Ready. The transition table lists them.</p>
+    </div>
+  </div>
+</div>

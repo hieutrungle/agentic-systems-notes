@@ -20,6 +20,24 @@ python -m labs.autoresearch --budget 4
 
 Rerun with budgets 0 and 2. Compare the winner, its validation score, and its final holdout score. Explain from the trial records why a failed proposal consumes budget without becoming the incumbent. See the [case study](../case-studies/autoresearch.qmd) for the full protocol.
 
+## The controller as a transition table
+
+```bash
+python -m labs.controller --table
+python -m labs.controller --scenario ordinary
+python -m labs.controller --scenario lost-score
+python -m labs.controller --scenario restart
+python -m labs.controller --scenario cancel
+```
+
+The module implements the AutoResearch controller from [Agent Loop and State Machines](../curriculum/02-agent-loop-state-machines.qmd) as a table of rows and a deterministic step function. Each row carries the number of the matching row in the lesson. Scripted events stand in for the policy, scheduler, evaluator, clock, operator, and process restarts. The gate is code. The `ordinary` and `lost-score` scenarios print the lesson's two traces, checkpoint by checkpoint. The `restart` scenario replaces the lost reply with a crash in Scoring and reaches the same record. The `cancel` scenario stops the run while job #42 is running. The scheduler then reports the cancelled job with a partial cost of 0.4 GPU-h, which closes the trial before the holdout is scored. All inputs are schematic.
+
+Then extend the lab.
+
+- Add a test in which the evaluator's lookup finds no score twice in a row. Check that the trial ends unresolved, that its cost is charged, and that nothing is promoted.
+- Deliver the late score while the controller is in Proposing instead of Ready. Confirm that the duplicate row still matches and that the policy's context is unchanged.
+- Add a `Paused` mode for a human approval between Authorizing and Dispatching. Decide which events it must handle, including a timeout and a cancellation, and where the approval belongs in the ledger.
+
 ```bash
 python -m unittest discover -s tests -v
 ```

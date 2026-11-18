@@ -1,0 +1,443 @@
+/* Block 02 figures. Shared frame, controls, and disclosures come from agent-fundamentals-animations.css. */
+
+.loop-states,
+.loop-trace {
+  --loop-wire: color-mix(in srgb, var(--bs-body-color) 62%, var(--bs-body-bg));
+  --loop-group: color-mix(in srgb, var(--bs-body-color) 3.5%, var(--bs-body-bg));
+}
+
+/* Figure 1: state diagram */
+
+.loop-states {
+  container: loop-states / inline-size;
+}
+
+.loop-states-layout {
+  display: grid;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+@container loop-states (min-width: 36rem) {
+  .loop-states-layout {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+}
+
+.loop-states-diagram {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 25rem;
+  block-size: auto;
+  margin-inline: auto;
+  overflow: visible;
+  font-family: var(--bs-body-font-family);
+}
+
+.loop-group {
+  fill: var(--loop-group);
+  stroke: var(--bs-border-color);
+}
+
+.loop-group-inner {
+  fill: color-mix(in srgb, var(--bs-body-color) 6%, var(--bs-body-bg));
+  stroke-dasharray: 3 2;
+}
+
+.loop-group-label {
+  fill: var(--bs-secondary-color);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.loop-node rect {
+  fill: var(--bs-body-bg);
+  stroke: var(--agent-line);
+  stroke-width: 1.2;
+}
+
+.loop-node text {
+  fill: var(--bs-body-color);
+  font-size: 15px;
+  font-weight: 650;
+  text-anchor: middle;
+}
+
+.loop-node-policy rect {
+  stroke: var(--agent-accent);
+  stroke-width: 2;
+}
+
+.loop-node-policy text {
+  fill: var(--agent-accent);
+}
+
+.loop-node-gate rect {
+  stroke-dasharray: 4 2;
+}
+
+.loop-node-terminal rect {
+  stroke-width: 2.4;
+}
+
+.loop-edges path {
+  fill: none;
+  stroke: var(--loop-wire);
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.loop-edges-policy path {
+  stroke: var(--agent-accent);
+  stroke-width: 2.6;
+}
+
+.loop-edges .loop-edge-stop {
+  stroke-dasharray: 5 3;
+}
+
+.loop-edge-labels text {
+  fill: var(--bs-secondary-color);
+  font-size: 12.5px;
+  font-weight: 550;
+}
+
+.loop-edge-labels .loop-policy-label {
+  fill: var(--agent-accent);
+  font-weight: 650;
+}
+
+.loop-states-key {
+  padding: 0.75rem 0.85rem;
+  border-inline-start: 3px solid var(--agent-accent);
+  background: var(--agent-surface);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.loop-states-key p,
+.loop-states-key ul {
+  margin: 0;
+}
+
+.loop-states-key p + p,
+.loop-states-key ul + p {
+  margin-top: 0.55rem;
+}
+
+.loop-states-key .loop-key-title {
+  margin-bottom: 0.4rem;
+  font-weight: 650;
+}
+
+.loop-states-key ul {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.loop-states-key li {
+  display: grid;
+  grid-template-columns: 1.9rem minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.loop-swatch,
+.loop-swatch-group {
+  display: inline-block;
+  inline-size: 1.5rem;
+  translate: 0 -0.25em;
+}
+
+.loop-swatch {
+  border-top: 2px solid var(--loop-wire);
+}
+
+.loop-swatch-policy {
+  border-top: 3px solid var(--agent-accent);
+}
+
+.loop-swatch-stop {
+  border-top: 2px dashed var(--loop-wire);
+}
+
+.loop-swatch-group {
+  block-size: 0.9rem;
+  translate: 0 0.1em;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--bs-body-color) 6%, var(--bs-body-bg));
+}
+
+/* Figure 2: controller trace */
+
+.loop-trace {
+  container: loop-trace / inline-size;
+}
+
+.loop-scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.loop-scenarios[hidden] {
+  display: none;
+}
+
+.loop-scenarios button {
+  min-height: 2.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--agent-line);
+  border-radius: 999px;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.loop-scenarios button[aria-pressed="true"] {
+  border-color: var(--agent-accent);
+  background: var(--agent-active);
+  color: var(--agent-accent);
+}
+
+.loop-scenarios button:hover {
+  border-color: var(--agent-accent);
+}
+
+.loop-scenarios button:focus-visible {
+  outline: 2px solid var(--agent-accent);
+  outline-offset: 2px;
+}
+
+.loop-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0;
+  margin: 0 0 0.8rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.loop-path li {
+  display: flex;
+  align-items: center;
+  color: var(--bs-secondary-color);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.loop-path li + li::before {
+  content: "→";
+  margin-inline: 0.25rem;
+  color: var(--bs-secondary-color);
+}
+
+.loop-path li > span {
+  padding: 0 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.loop-path li.is-past > span {
+  color: var(--bs-body-color);
+}
+
+.loop-path li.is-current > span {
+  border-color: var(--agent-accent);
+  background: var(--agent-active);
+  color: var(--agent-accent);
+  font-weight: 700;
+}
+
+.loop-path li.is-future > span {
+  opacity: 0.65;
+}
+
+.loop-path li.is-policy-mode > span {
+  border-style: dashed;
+  border-color: var(--agent-accent);
+}
+
+.loop-path li.is-policy-mode.is-current > span {
+  border-style: solid;
+}
+
+.loop-readout {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.loop-step {
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--bs-border-color);
+  border-inline-start: 3px solid var(--agent-accent);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--agent-surface);
+}
+
+.loop-step .loop-owner {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--agent-line);
+  border-radius: 999px;
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.loop-step .loop-owner[data-owner="policy"] {
+  border-color: var(--agent-accent);
+  background: var(--agent-active);
+  color: var(--agent-accent);
+}
+
+.loop-step .loop-transition {
+  margin-bottom: 0.45rem;
+  color: var(--agent-accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.loop-rule {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.loop-rule div {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.loop-rule dt {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.loop-rule dd {
+  margin: 0;
+}
+
+.loop-step .loop-note {
+  margin-top: 0.55rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.loop-layers {
+  display: grid;
+  gap: 0.6rem;
+}
+
+@container loop-trace (min-width: 40rem) {
+  .loop-layers {
+    grid-template-columns: 1.25fr 1fr 1fr;
+  }
+}
+
+.loop-layer {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.loop-layer .loop-layer-title {
+  margin-bottom: 0.35rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.loop-layer .loop-layer-title [data-field="checkpoint"] {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.loop-layer dl {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.loop-layer dl div,
+.loop-layer > div[data-field] {
+  padding: 0.15rem 0.35rem;
+  border-inline-start: 3px solid transparent;
+  border-radius: 2px;
+}
+
+.loop-layer dt {
+  color: var(--bs-secondary-color);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.loop-layer dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.loop-layer .loop-context {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.loop-layer .loop-context-tag {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.loop-layer .is-stale .loop-context {
+  color: var(--bs-secondary-color);
+}
+
+.loop-layer .is-empty .loop-context {
+  color: var(--bs-secondary-color);
+  font-style: italic;
+}
+
+.loop-layer .is-changed {
+  border-inline-start-color: var(--agent-accent);
+  background: var(--agent-active);
+}
+
+.loop-trace.is-animated .is-changed {
+  animation: loop-flash 0.9s ease-out;
+}
+
+@keyframes loop-flash {
+  from {
+    background: color-mix(in srgb, var(--agent-accent) 28%, var(--bs-body-bg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-trace .is-changed {
+    animation: none;
+  }
+}
+
+.loop-trace code {
+  font-size: 0.85em;
+}
+
+/* Wide lesson tables scroll inside their region instead of collapsing into narrow columns. */
+main .table-responsive table {
+  min-width: 42rem;
+}

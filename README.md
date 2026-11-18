@@ -19,6 +19,7 @@ Use Python 3.11 or newer. The core labs and tests use the standard library.
 ```bash
 python -m labs.tool_contract
 python -m labs.autoresearch --budget 4
+python -m labs.controller --scenario lost-score
 python -m unittest discover -s tests -v
 ```
 
