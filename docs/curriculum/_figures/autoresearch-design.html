@@ -1,0 +1,68 @@
+<div class="agent-animation agent-overview" data-agent-overview>
+  <p class="agent-overview-hint">Hover over a block for details, or select it with a click, tap, or Enter.</p>
+  <div class="agent-overview-layout">
+    <div class="agent-overview-flow" aria-label="AutoResearch control flow" role="group">
+      <p class="agent-overview-phase">Set up once</p>
+      <ol class="agent-overview-setup" role="list">
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Fix the protocol <span>Runtime</span></summary>
+            <p>Pin the baseline, validation metric, allowed operations, and compute and trial limits. Reserve a separate holdout for final evaluation.</p>
+          </details>
+        </li>
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Start the ledger <span>Runtime</span></summary>
+            <p>Record the baseline as the initial incumbent, its score, remaining compute, and zero pending jobs. The ledger will track what each trial did and cost.</p>
+          </details>
+        </li>
+      </ol>
+      <p class="agent-overview-phase agent-overview-down">Repeat one trial at a time</p>
+      <ol class="agent-overview-loop" role="list">
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Build context <span>Runtime</span></summary>
+            <p>Give the model the goal, relevant ledger entries, latest results, and available operations. On the next turn these inputs reflect the previous trial.</p>
+          </details>
+        </li>
+        <li>
+          <details class="agent-overview-policy" name="autoresearch-stage">
+            <summary>Propose a trial <span>Learned policy</span></summary>
+            <p>Choose a configuration that tests a hypothesis, or replicate a promising result. The output is a proposed experiment with arguments such as learning rate and seed.</p>
+          </details>
+        </li>
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Authorize <span>Runtime</span></summary>
+            <p>Check the arguments, permissions, and compute reservation. Only an approved request can reach the scheduler. A rejected or paused request leaves the job unsubmitted.</p>
+          </details>
+        </li>
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Run and score <span>Executor / scorer</span></summary>
+            <p>The executor submits the approved request. The scheduler assigns a job ID, workers train the candidate, and the fixed evaluator returns a validation score.</p>
+          </details>
+        </li>
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Record result <span>Runtime</span></summary>
+            <p>Record the outcome and measured cost, clear the completed job, and promote the candidate if it beats the incumbent and passes the protocol checks. The updated ledger feeds later choices.</p>
+          </details>
+        </li>
+        <li>
+          <details name="autoresearch-stage">
+            <summary>Check limits <span>Runtime</span></summary>
+            <p>Apply the trial cap, compute limit, and other stop conditions. Continue by building context from the updated ledger, or end the search and freeze the incumbent.</p>
+          </details>
+        </li>
+      </ol>
+      <p class="agent-overview-repeat"><span aria-hidden="true">↺</span> Continue → Build context with the updated ledger</p>
+      <p class="agent-overview-phase agent-overview-down">When the search stops</p>
+      <details name="autoresearch-stage">
+        <summary>Evaluate the final selection <span>Fixed evaluator</span></summary>
+        <p>Freeze the selected configuration, then score it on the reserved holdout. The holdout result assesses the frozen selection and stays out of the proposal loop.</p>
+      </details>
+    </div>
+    <p class="agent-overview-default">What changes between trials? A validation result updates the ledger. If the search continues, the updated ledger can change the next proposal.</p>
+  </div>
+</div>

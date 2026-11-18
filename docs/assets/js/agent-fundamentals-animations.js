@@ -322,6 +322,44 @@ function mountLessonToc() {
   disclosure.hidden = false;
 }
 
+function mountOverview(overview) {
+  let preview;
+
+  function dismissPreview() {
+    if (!preview) return;
+    preview.open = false;
+    preview = undefined;
+  }
+
+  for (const stage of overview.querySelectorAll("details")) {
+    stage.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse" || stage.open) return;
+      dismissPreview();
+      stage.open = true;
+      preview = stage;
+    });
+
+    stage.querySelector("summary").addEventListener("click", (event) => {
+      if (preview !== stage) return;
+      preview = undefined;
+      // A pointer click keeps a preview open. Keyboard activation toggles it normally.
+      if (event.detail > 0) event.preventDefault();
+    });
+  }
+
+  overview.addEventListener("pointerleave", dismissPreview);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    dismissPreview();
+    const activeStage = document.activeElement?.closest("details[open]");
+    if (activeStage && overview.contains(activeStage)) activeStage.open = false;
+  });
+}
+
+for (const overview of document.querySelectorAll("[data-agent-overview]")) {
+  mountOverview(overview);
+}
+
 mountLessonToc();
 
 for (const root of document.querySelectorAll("[data-agent-animation]")) {

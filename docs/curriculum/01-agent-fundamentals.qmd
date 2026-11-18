@@ -7,7 +7,7 @@ css: ../assets/css/agent-fundamentals-animations.css
 
 What actually changes when an LLM stops merely producing an answer and starts controlling a trajectory of actions?
 
-The architectural shift is **delegated control authority**. A model used for prediction produces a value for its caller. A model embedded in an agentic controller can influence which operation happens next, what the system learns from that operation, and which options are available later. The runtime still decides what the model is allowed to control.
+The architectural shift is **delegated control authority**. A model used for prediction produces a value for its caller. A model embedded in an agentic controller can influence which operation happens next, what evidence that operation yields, and which options are available later. The **runtime**, the software around the model, controls what can run and when the system must stop. The **policy** is the part that proposes what to do next.
 
 <script type="module" src="../assets/js/agent-fundamentals-animations.js"></script>
 
@@ -28,7 +28,7 @@ The same label can describe a chatbot that hands one request to a handler or a s
 
 The course uses **control authority as an engineering lens**. Who can choose the next step, when can they choose again, and what can their decisions change? At a given decision point, hold the inputs and runtime rules fixed. Could a different admissible model choice change which operation the system attempts or which path it takes? A positive answer identifies some delegated control. A classifier can send one request down a different branch, so this test alone cannot distinguish a learned decision node from a policy that controls an entire trajectory.
 
-Feedback-conditioned control is central to the multi-step systems in this course. Broader uses of “agent” can include one-shot delegated decisions. Tool access, the number of model calls, and the complexity of the generated text can all vary independently of how much control is delegated.
+A decision is **feedback-conditioned** when a different result from an earlier action could change the choice. That is the kind of control this course focuses on in multi-step systems. Broader uses of “agent” can include one-shot delegated decisions. Tool access, the number of model calls, and the complexity of the generated text can all vary independently of how much control is delegated.
 
 ## 2. LLM call vs pipeline vs workflow vs agent
 
@@ -102,12 +102,12 @@ The learned policy proposes an operation. The runtime authorizes and dispatches 
 ::: {#agent-control-transcript}
 **Text walkthrough.** AutoResearch starts at a validation score of 0.842 with 2 GPU-hours available. Higher scores are better in these schematic examples. The policy receives the baseline and budget, then proposes a trial at learning rate 3e-4 and seed 7. The runtime checks the request and binds authorization to its arguments. The executor submits the request, the scheduler accepts job #42, and the controller records it as pending.
 
-The job scores 0.851 at a cost of 0.6 GPU-hours. The controller records the candidate as the validation incumbent, clears the pending job, and continues with 1.4 GPU-hours unspent. The gain prompts a replication proposal with seed 11 to test whether it repeats. A flat or worse result under the same budget could instead prompt a different learning rate. The replication remains a proposal at the end of the figure.
+The job scores 0.851 at a cost of 0.6 GPU-hours. The controller records the candidate as the incumbent (the best configuration on validation so far), clears the pending job, and continues with 1.4 GPU-hours unspent. The gain prompts a replication proposal with seed 11 to test whether it repeats. A flat or worse result under the same budget could instead prompt a different learning rate. The replication remains a proposal at the end of the figure.
 :::
 
 ### One turn of the runtime
 
-Let $g$ be the delegated goal, $x_t$ the external state, $o_t$ the observation, and $z_t$ the controller's internal information state. The policy sees the context $c_t$ that the runtime constructs and the actions it makes available for proposal.
+In the walkthrough, job #42 running or complete is part of the external state $x_t$. The score returned by the evaluator is an observation $o_t$. The ledger is runtime state $z_t$, and the context $c_t$ is the slice of that information shown to the policy for its next decision. Write $g$ for the goal.
 
 $$
 \begin{aligned}
@@ -190,7 +190,7 @@ Keep the criteria at different layers separate.
 | **Evaluation metric** | Independently measured quality, cost, or completion for comparing deployed systems. |
 | **Termination rule** | End when the trial cap, deadline, cancellation, or verified completion condition is reached. |
 
-A run can end without succeeding. An evaluator's metric can inform candidate selection without serving as an RL reward. The decision-process model describes the runtime trajectory. A pretrained proposal model can execute it without RL training of any kind or weight updates during the run. [Block 13](13-learning-agents-rl.qmd) addresses training the policy that operates inside that runtime.
+A run can end without succeeding. An evaluator's metric can inform candidate selection without serving as an RL reward. The decision-process model describes the runtime trajectory. AutoResearch can change its next experiment in response to a validation score while the proposal model's weights stay fixed. The model can be pretrained without RL. [Block 13](13-learning-agents-rl.qmd) addresses training the policy that operates inside that runtime.
 
 ## 8. Autonomy vs agency
 
@@ -227,29 +227,27 @@ In the fixed batch, scores determine the winner. In the adaptive loop, scores al
 
 In the fixed batch in @fig-agent-experiment-control, a person, a program, or an LLM could choose all three configurations up front. Intermediate results cannot change the schedule, so trial selection is open-loop with respect to those results. The scores still determine the final winner. In the adaptive search, intermediate results can change the next configuration. This is closed-loop experiment selection under the same fixed horizon of three trials. A conventional feedback-driven optimizer and an LLM policy can both use this structure.
 
-**Empirical evidence.** MLAgentBench evaluates language agents on iterative ML experimentation [@huang2024mlagentbench]. MLE-bench compares model and scaffold combinations on offline Kaggle tasks [@chan2025mlebench]. Both illustrate evaluation under a specified protocol.
-
 ### A high-level AutoResearch design
 
-Build AutoResearch as one bounded adaptive controller around an experiment loop. The learned policy decides which experiment would be most useful given the evidence so far. A deterministic runtime owns the evaluator, permissions, budgets, execution, artifact persistence, and hard stopping conditions.
+AutoResearch runs as one bounded controller. It sets up the protocol once, repeats trials under that protocol, and evaluates the final selection after the search has stopped. The learned policy chooses which trial to propose. The runtime enforces what can run and when the search must stop.
 
-1. **Initialize the experimental protocol.** Pin the baseline, validation split, and scoring rule. Reserve a separate holdout for evaluating the final selection after the controller has frozen it. In the worked run from @fig-agent-runtime, the baseline score is `0.842`, the compute budget is `2 GPU-hours`, and the maximum is five trials. @fig-agent-experiment-control uses a separate three-trial comparison. Set the allowed operations and stop conditions before asking the policy for its first decision. The runtime enforces these settings throughout the run.
+::: {#fig-autoresearch-design}
 
-2. **Initialize runtime state.** Start an experiment ledger with the incumbent configuration and score, completed trials, pending job IDs, remaining budget, and code and model versions. Begin with the baseline as incumbent and no pending jobs. This ledger is the information state the controller carries from one decision to the next.
+```{=html}
 
-3. **Construct the policy context.** Use the goal, ledger, and latest observations to construct $c_t = \phi(g,z_t,o_t)$, as in @fig-agent-runtime. The policy receives a projection that might include the incumbent score, the most recent result, the remaining budget, and whether a trial is pending. The runtime also exposes the currently available actions $\mathcal A_t^{\mathrm{avail}}$. Raw training data and scheduler internals stay behind their interfaces.
+{{< include _figures/autoresearch-design.html >}}
 
-4. **Propose the next experiment.** Given the context, the policy might return `run_experiment(learning_rate=3e-4, seed=7)`. The runtime now has a proposal to assess. No job has been submitted.
+```
 
-5. **Validate and authorize.** Check that the operation is allowed, its parameters are valid, compute can be reserved, and the job would not conflict with pending work. Resolve any required approval. Only an accepted proposal becomes an authorized operation, with authorization bound to the approved parameters and scope.
+The path through an approved AutoResearch trial. Validation scores guide the search. The reserved holdout evaluates the final selection after the search stops.
 
-6. **Execute in the environment.** The executor sends the authorized request to the scheduler. Once the scheduler accepts it, the runtime records the job ID. The job runs against the pinned code and dataset on GPU workers and writes artifacts to the configured store. The policy reaches these systems through the runtime interface.
+:::
 
-7. **Observe the result and update state.** A result may include a validation score, training curves, elapsed time, GPU cost, logs, or failure status. Suppose the trial scores `0.851` and uses `0.6 GPU-hours`. The controller records it, clears the pending job, and charges the measured compute, leaving `1.4 GPU-hours`. If the result passes the acceptance checks, the candidate becomes the incumbent.
+**Follow one result through the loop.** In the worked run from @fig-agent-runtime, the baseline scores 0.842, the limit is 2 GPU-hours, and the runtime allows at most five trials. The policy proposes learning rate 3e-4 with seed 7. After authorization, the scheduler accepts job #42. The result scores 0.851 and uses 0.6 GPU-hours. The controller records the candidate as the new validation incumbent and has 1.4 GPU-hours unspent.
 
-8. **Decide whether to continue.** The runtime checks the cap, remaining compute, and other stop conditions against the updated ledger. It allows another policy turn. The observed gain makes it worth checking seed sensitivity, so the policy proposes replicating the candidate from job #42 with seed 11. Had the trial tied or underperformed the baseline, the same budget could go toward testing a different learning rate. The replication proposal would still need authorization.
+Once the runtime allows another turn, the gain gives the policy a reason to propose replication with seed 11. A flat or worse result could send it toward another learning rate under the same limits. This is the feedback-conditioned experiment selection illustrated with a separate three-trial example in @fig-agent-experiment-control.
 
-One bounded controller is enough for this design. Later blocks develop the controller's state transitions, planning, recovery, and execution infrastructure.
+**Empirical evidence.** MLAgentBench evaluates language agents on iterative ML experimentation [@huang2024mlagentbench]. MLE-bench compares model and scaffold combinations on offline Kaggle tasks [@chan2025mlebench]. Both illustrate evaluation under a specified protocol.
 
 ## 11. Production implications
 
