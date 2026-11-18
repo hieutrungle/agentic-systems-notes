@@ -304,6 +304,111 @@ function mountAnimation(root, stages, readout) {
   controls.hidden = false;
 }
 
+const designStages = [
+  ["The ticket arrives", "One ticket reaches five designs. Each has the same model, order lookup, handlers, and refund rule. What differs is who picks the next step."],
+  ["First model call", "The single call, the pipeline, and the workflow use the model to write or extract text. The router and the agent use it to choose an operation."],
+  ["What each design does next", "The single call is finished. The workflow's rule reads the extracted fields and picks Escalate. The router's Refund choice fails its precondition because there is no order number. The agent receives the lookup result."],
+  ["Handlers and a proposal", "The workflow runs Escalate, and code falls back to Escalate for the router. The agent uses the lookup result to propose a refund for order #1043."],
+  ["The refund is checked", "The pipeline ends after its three fixed steps, and a person takes over the escalated tickets. The runtime checks the agent's proposal against the $100 and 30-day rule. Order #1043 passes."],
+  ["The refund runs", "The runtime dispatches the refund handler for order #1043."],
+  ["Evidence returns", "The payment system returns a receipt. Until it does, the runtime cannot treat the refund as done."],
+  ["The agent proposes to stop", "With the receipt in its context, the agent drafts a reply and proposes to stop. A stop proposal is a request, not a decision."],
+  ["The runtime ends the run", "The runtime accepts the stop because the refund has a receipt and the reply is ready."],
+  ["Compare the designs", "Only in the agent did the model choose the next operation after seeing a result from the environment. Compare who picked each next step, what it cost, and what could go wrong."],
+];
+
+function mountDesignComparison(root) {
+  const items = [...root.querySelectorAll("[data-step]")];
+  const narration = root.querySelector("[data-narration]");
+  const controls = root.querySelector("[data-controls]");
+  const play = controls.querySelector("[data-play]");
+  const previous = controls.querySelector("[data-previous]");
+  const next = controls.querySelector("[data-next]");
+  const seek = controls.querySelector("[data-seek]");
+  const status = controls.querySelector("[data-status]");
+  const last = designStages.length - 1;
+  let index = last;
+  let playing = false;
+  let timer = 0;
+
+  function render() {
+    const [title, text] = designStages[index];
+    for (const item of items) {
+      const step = Number(item.dataset.step);
+      item.classList.toggle("is-pending", step > index);
+      item.classList.toggle("is-current", step === index);
+    }
+    narration.textContent = text;
+    seek.value = index;
+    seek.setAttribute("aria-valuetext", title);
+    status.textContent = "Stage " + (index + 1) + " of " + designStages.length + " · " + title;
+    previous.setAttribute("aria-disabled", index === 0);
+    next.setAttribute("aria-disabled", index === last);
+  }
+
+  function updatePlayButton() {
+    play.textContent = playing ? "Pause" : "Play";
+    play.setAttribute("aria-label", (playing ? "Pause" : "Play") + " design comparison");
+  }
+
+  function pause() {
+    if (!playing) return;
+    playing = false;
+    clearTimeout(timer);
+    updatePlayButton();
+  }
+
+  function schedule() {
+    timer = setTimeout(() => {
+      if (!playing) return;
+      if (index === last) {
+        pause();
+        return;
+      }
+      index += 1;
+      render();
+      schedule();
+    }, 2000 + 20 * designStages[index][1].length);
+  }
+
+  function goTo(target) {
+    pause();
+    index = Math.max(0, Math.min(target, last));
+    render();
+  }
+
+  controls.querySelector("[data-restart]").addEventListener("click", () => goTo(0));
+  previous.addEventListener("click", () => { if (index > 0) goTo(index - 1); });
+  next.addEventListener("click", () => { if (index < last) goTo(index + 1); });
+  seek.max = last;
+  seek.addEventListener("input", () => goTo(Number(seek.value)));
+  play.addEventListener("click", () => {
+    if (playing) {
+      pause();
+      return;
+    }
+    if (index === last) index = 0;
+    playing = true;
+    updatePlayButton();
+    render();
+    schedule();
+  });
+  new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) pause();
+  }).observe(root);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pause();
+  });
+
+  render();
+  narration.hidden = false;
+  controls.hidden = false;
+}
+
+for (const comparison of document.querySelectorAll("[data-agent-designs]")) {
+  mountDesignComparison(comparison);
+}
+
 function mountLessonToc() {
   const disclosure = document.querySelector(".agent-lesson-toc");
   const sections = document.querySelectorAll("#TOC > ul > li > a[href^='#']");

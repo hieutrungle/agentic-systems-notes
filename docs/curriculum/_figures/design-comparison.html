@@ -1,0 +1,107 @@
+<div class="agent-animation agent-designs" data-agent-designs>
+  <div class="agent-designs-setup">
+    <div class="agent-designs-ticket">
+      <p class="agent-designs-label">Ticket</p>
+      <p class="agent-designs-quote">“My blender arrived cracked. I want my money back.”</p>
+      <p class="agent-designs-note">No order number. The customer has two recent orders.</p>
+    </div>
+    <div class="agent-designs-toolbox">
+      <p class="agent-designs-label">Shared by every design</p>
+      <ul class="agent-designs-handlers" aria-label="Predefined handlers">
+        <li>Refund</li>
+        <li>Escalate</li>
+        <li>Reject</li>
+      </ul>
+      <p class="agent-designs-note">One model, an order-lookup API, and a runtime rule: refunds above $100 or older than 30 days go to a person.</p>
+    </div>
+  </div>
+
+  <ul class="agent-designs-rows" id="agent-designs-rows">
+    <li class="agent-design">
+      <div class="agent-design-head">
+        <p class="agent-design-name">Single LLM call</p>
+        <p class="agent-design-who">Next step: none to pick</p>
+      </div>
+      <ol class="agent-design-steps" aria-label="Single LLM call">
+        <li class="is-content" data-step="1">Model drafts a reply</li>
+        <li class="agent-design-outcome" data-step="2">A person reads the draft and acts. No handler runs. 1 model call.</li>
+      </ol>
+    </li>
+    <li class="agent-design">
+      <div class="agent-design-head">
+        <p class="agent-design-name">Fixed pipeline</p>
+        <p class="agent-design-who">Next step: code, in a fixed order</p>
+      </div>
+      <ol class="agent-design-steps" aria-label="Fixed pipeline">
+        <li class="is-content" data-step="1">Model summarizes</li>
+        <li class="is-content" data-step="2">Model labels it “damaged item”</li>
+        <li class="is-content" data-step="3">Model drafts a reply</li>
+        <li class="agent-design-outcome" data-step="4">Every ticket gets the same three steps, and a person still acts. 3 model calls.</li>
+      </ol>
+    </li>
+    <li class="agent-design">
+      <div class="agent-design-head">
+        <p class="agent-design-name">Rules workflow</p>
+        <p class="agent-design-who">Next step: code, by business rules</p>
+      </div>
+      <ol class="agent-design-steps" aria-label="Rules workflow">
+        <li class="is-content" data-step="1">Model extracts: blender, cracked, no order number</li>
+        <li class="is-code" data-step="2">Rule: no order number → Escalate</li>
+        <li class="is-handler" data-step="3">Run: Escalate</li>
+        <li class="agent-design-outcome" data-step="4">A person takes over. No refund without an order number, but staff time is spent. 1 model call.</li>
+      </ol>
+    </li>
+    <li class="agent-design">
+      <div class="agent-design-head">
+        <p class="agent-design-name">Learned router</p>
+        <p class="agent-design-who">Next step: the model, once</p>
+      </div>
+      <ol class="agent-design-steps" aria-label="Learned router">
+        <li class="is-choice" data-step="1">Model picks a handler: Refund</li>
+        <li class="is-code" data-step="2">Refund precondition fails: no order number</li>
+        <li class="is-handler" data-step="3">Fallback in code — Run: Escalate</li>
+        <li class="agent-design-outcome" data-step="4">A person takes over. The model's one choice, made from the ticket text alone, was spent. 1 model call.</li>
+      </ol>
+    </li>
+    <li class="agent-design">
+      <div class="agent-design-head">
+        <p class="agent-design-name">Agent</p>
+        <p class="agent-design-who">Next step: the model, after each result</p>
+      </div>
+      <ol class="agent-design-steps" aria-label="Agent">
+        <li class="is-choice" data-step="1">Model chooses: look up the customer’s orders</li>
+        <li class="is-observation" data-step="2">Result: #1043 blender, $79, 12 days ago · #0988 kettle, $129, 50 days ago</li>
+        <li class="is-choice" data-step="3">Model proposes: refund #1043</li>
+        <li class="is-code" data-step="4">Runtime check: $79, 12 days ✓</li>
+        <li class="is-handler" data-step="5">Run: Refund #1043</li>
+        <li class="is-observation" data-step="6">Result: refund receipt for #1043</li>
+        <li class="is-choice" data-step="7">Model drafts a reply citing the receipt and proposes to stop</li>
+        <li class="is-code" data-step="8">Runtime accepts the stop</li>
+        <li class="agent-design-outcome" data-step="9">The lookup result determined the next choice. 3 model calls and 1 lookup. Risk: refunding the wrong order, which the rule caps but cannot detect.</li>
+      </ol>
+    </li>
+  </ul>
+
+  <ul class="agent-designs-legend" aria-label="Legend">
+    <li><span class="agent-designs-swatch is-content" aria-hidden="true"></span>Model writes content</li>
+    <li><span class="agent-designs-swatch is-choice" aria-hidden="true"></span>Model chooses the next operation</li>
+    <li><span class="agent-designs-swatch is-code" aria-hidden="true"></span>Code, rule, or runtime check</li>
+    <li><span class="agent-designs-swatch is-handler" aria-hidden="true"></span>Handler runs</li>
+    <li><span class="agent-designs-swatch is-observation" aria-hidden="true"></span>Result returned</li>
+  </ul>
+
+  <p class="agent-designs-narration" data-narration aria-live="polite" hidden></p>
+
+  <div class="agent-controls" data-controls hidden role="group" aria-label="Design comparison controls">
+    <div class="agent-buttons">
+      <button type="button" data-restart aria-label="Restart design comparison" aria-controls="agent-designs-rows">Restart</button>
+      <button type="button" data-previous aria-label="Previous comparison step" aria-controls="agent-designs-rows">← Step</button>
+      <button type="button" data-play aria-label="Play design comparison" aria-controls="agent-designs-rows">Play</button>
+      <button type="button" data-next aria-label="Next comparison step" aria-controls="agent-designs-rows">Step →</button>
+    </div>
+    <div class="agent-timeline">
+      <input type="range" min="0" step="1" value="0" data-seek aria-label="Design comparison step" aria-controls="agent-designs-rows">
+      <p data-status role="status"></p>
+    </div>
+  </div>
+</div>

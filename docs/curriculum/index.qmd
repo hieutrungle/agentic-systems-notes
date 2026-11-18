@@ -2,7 +2,7 @@
 title: "Curriculum"
 ---
 
-The canonical sequence starts with control authority and ends with a system design review. Each block has a study task and a deliverable. The [design exercises](../exercises/index.qmd) combine topics, and [AutoResearch](../case-studies/autoresearch.qmd) runs through the course.
+The canonical sequence starts with control authority and ends with a system design review. Each block answers one design question and adds one piece to [AutoResearch](../case-studies/autoresearch.qmd), the agent the course builds. The [build roadmap](../case-studies/autoresearch.qmd#building-autoresearch-block-by-block) shows what each block adds, and the [design exercises](../exercises/index.qmd) combine topics.
 
 | Block | Topic | Study question |
 |---|---|---|

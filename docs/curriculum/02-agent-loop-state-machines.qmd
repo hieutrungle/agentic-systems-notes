@@ -13,6 +13,14 @@ When should transitions be explicit in the controller?
 
 The short answer to the opening question: make a transition explicit when its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or what the environment delivers. Leave a choice to the policy only where judgment pays and every option the policy can select is already legal.
 
+::: {.callout-note}
+## Where this block fits
+
+[Block 01](01-agent-fundamentals.qmd) gave AutoResearch its protocol and an owner for every decision in its loop. This block builds the next piece: the controller that runs that loop, written as an explicit transition table with checkpoints and a defined response to lost replies, restarts, and hard stops. Later blocks attach typed tools, a durable ledger, planning, and sub-agents to this controller. The [case study](../case-studies/autoresearch.qmd#building-autoresearch-block-by-block) lists what each block adds.
+:::
+
+The lesson starts with why a loop stops being enough and who produces each event (§1–2). It builds the controller and formalizes it (§3–5), then traces an ordinary trial and a lost reply through it (§6–8). It returns to implementation choices, failure modes, and production concerns (§9–11), and closes with what AutoResearch now has (§12) and a conclusion (§13).
+
 <script type="module" src="../assets/js/agent-loop-animations.js"></script>
 
 <details class="agent-lesson-toc" hidden>
@@ -303,12 +311,35 @@ Treat the transition log as the audit trail and the replay input. Each entry rec
 
 Version the table. A long run should finish on the version it started with or migrate explicitly, which [Long-Horizon Agents](11-long-horizon-agents.qmd) and [Production Agent Infrastructure](12-production-infrastructure.qmd) take up. Parallel trials need one record per trial and a rule for joining their results, which [Core Agent Architectures](06-agent-architectures.qmd) compares with this single-flight design.
 
-## 12. Companion reading {#companion-reading}
+## 12. AutoResearch after Block 02
+
+Compare Block 01's [top-level design](01-agent-fundamentals.qmd#fig-autoresearch-design) with @fig-controller-states. Each box of the loop became one or more modes, and each arrow became one or more rows with a guard. The policy's role did not grow. It still chooses the next trial or asks to stop. What grew is the runtime's precision about everything else.
+
+::: {.callout-tip}
+## Built in Block 02, and next
+
+**Built in this block.** The controller: nine modes, 23 rows, five invariants, and a termination argument. `labs/controller.py` implements it, and its tests replay both traces, a restart, and a cancellation, and feed random event sequences while checking the invariants.
+
+**Next.** [Tool Use](03-tool-use.qmd) specifies the operations behind rows 7–9 and 14–20: typed requests to submit, score, and look up trials, with validation, authorization, and the operation and scoring IDs that reconciliation relies on.
+:::
+
+## 13. Conclusion
+
+The opening question asked when transitions should be explicit in the controller. Make a transition explicit where its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. In AutoResearch that covers almost every edge. The approval binds the exact arguments, row 7 commits before sending, reconciliation reads stored results by ID, and Ready runs the stop rule before every policy turn. The policy keeps the one decision that benefits from judgment: which trial to run next, and whether to ask to stop.
+
+- **A loop repeats work. A transition table says what is legal next.**
+- **A checkpoint is evidence about the controller, not about the world.**
+- **Every input the runtime cannot refuse needs a row** in every mode where it can arrive.
+- **Choose the simplest implementation that keeps these properties**, whether a loop, a table, or an engine.
+
+The controller now knows what to do with every reply. The next block defines the operations that produce those replies.
+
+## 14. Companion reading {#companion-reading}
 
 - *AI Agents in Action*, second edition, chapter 9, "Understanding the agentic loop." Mark which steps of the book's loop the model decides and which the code fixes, then compare them with rows 3 and 4 of the transition table [@lanham2026aiagents].
 - *Building Applications with AI Agents*, chapter 5, "Orchestration." For the reflex, ReAct, and planner–executor agent types, identify which transitions the model selects and where a runtime guard would sit [@albada2025applications].
 
-## 13. Conceptual questions
+## 15. Conceptual questions
 
 1. In the AutoResearch controller, which edges can the policy choose, and what prevents it from authorizing its own trial or promoting a candidate?
 

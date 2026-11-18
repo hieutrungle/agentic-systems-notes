@@ -41,19 +41,28 @@ python -m labs.autoresearch --budget 4
 
 The baseline predicts 0 and has validation MAE 3. The four proposals are 2, 1, 3, and 4. The controller accepts 2 and 3. The final predictor is 3, with validation MAE 0.5 and holdout MAE 1.0. This run illustrates selection under a budget. Its four-point holdout is too small to support a claim about generalization.
 
-## Study questions across the course
+## Building AutoResearch block by block {#building-autoresearch-block-by-block}
 
-The running case starts with a hypothesis, an experiment, a measurement, and a decision. Later design exercises extend that loop to research planning, repository inspection, literature search, and experiment management. A production design also has to account for compute budgets, a durable experiment ledger, replanning and recovery, parallel work, evaluation, stopping conditions, and observability.
+The course builds AutoResearch incrementally. Each block answers one design question and adds one piece to the system. By Block 14 the pieces form an agent for machine-learning modeling work with validated tool calls, isolated sub-agents for each role, a durable experiment ledger, recovery from failures, a protected evaluator and holdout, and evaluation evidence that justifies deploying it. Rows for blocks that have not yet been developed describe the plan.
 
-| Blocks | Examine |
-|---|---|
-| 01–02 | Who chooses the next experiment, and which transitions or stop decisions does the controller own? |
-| 03–04 | Which tools can propose or promote a candidate, and what belongs in prompt context or the durable ledger? |
-| 05–06 | When should the plan change, and which controller architecture can enforce the experiment protocol? |
-| 07–08 | When do separate research roles earn their coordination cost, and how could MCP expose research capabilities? |
-| 09–10 | How do we compare against a fixed baseline and recover from an ambiguous failure? |
-| 11–12 | How does the run resume hours later, and how do queues, GPUs, and traces make its execution accountable? |
-| 13–14 | Can the proposal policy learn, and what evidence justifies deploying the complete system? |
+| Block | Piece added to AutoResearch | Design question |
+|---|------|----|
+| 01 | Protocol and ownership map: a fixed evaluator, a promotion rule, compute and trial limits, and a holdout scored once on the frozen selection. The policy proposes trials or a stop, and the runtime authorizes, runs, scores, promotes, records, and stops | Who chooses the next experiment, and what does the runtime enforce? |
+| 02 | Explicit controller: modes, a transition table, checkpoints, and reconciliation of ambiguous outcomes | Which transitions must be explicit, and what does a checkpoint prove? |
+| 03 | Typed tools to edit training code in a sandbox and to submit, score, look up, and promote trials, with validation, authorization, and operation IDs. No tool can write to the evaluator or the data | How does a proposal become a validated operation? |
+| 04 | Durable experiment ledger and context builder | What enters the policy's context, and what must survive a restart? |
+| 05 | Research planner that revises hypotheses when the evidence warrants it | When should the plan change? |
+| 06 | Architecture choice for the workload, such as planner–executor or supervisor–worker, justified against a single controller | Who should own the next decision and the state needed to make it? |
+| 07 | Isolated sub-agents for proposing, running, and reviewing, each with scoped permissions. Scoring stays with the fixed evaluator, which no sub-agent can modify | When do separate roles earn their coordination cost? |
+| 08 | Tools exposed through MCP, and the choice between exposing a sub-agent as a tool or through an agent-to-agent protocol | Which boundary should be standardized? |
+| 09 | Evaluation harness against a fixed batch and a conventional optimizer at matched budgets, with validation-overfitting checks such as fresh-seed re-scoring of the final incumbent | Does learned selection beat strong baselines? |
+| 10 | Retries, idempotent writes, and recovery from crashes and ambiguous failures | How does the run resume accurately after a failure? |
+| 11 | Runs that span hours or days, with resume and replanning | How does a run continue hours later? |
+| 12 | Queues, GPU scheduling, tracing, and cost controls across many runs | What must the runtime guarantee at scale? |
+| 13 | A proposal policy improved from logged runs. Training data comes from validation-era logs, and holdout results never enter it | Did training improve the policy that drives the agent? |
+| 14 | Complete design review and deployment evidence | What evidence justifies deploying the added autonomy? |
+
+The [design exercises](../exercises/index.qmd) combine several pieces, such as an experiment service with approvals.
 
 ## Animation
 

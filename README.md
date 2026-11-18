@@ -60,7 +60,7 @@ Push the repository to a GitHub project with Pages enabled. In the repository se
 
 | Path | Contents |
 |---|---|
-| `docs/curriculum/` | Numbered study blocks with concepts, tasks, and deliverables |
+| `docs/curriculum/` | Numbered lessons, each adding one piece of AutoResearch |
 | `docs/literature/` and `docs/references.bib` | Reviews, paper notes, and the shared bibliography |
 | `docs/case-studies/` and `docs/exercises/` | Running case study and cross-block design exercises |
 | `docs/assets/` and `animations/` | Diagram and animation sources |

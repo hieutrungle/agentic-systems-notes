@@ -5,11 +5,13 @@ subtitle: "Engineering reliable, scalable, production-grade AI agents"
 
 A 14-block study curriculum on how to design, evaluate, and operate AI systems that use tools and adapt to observations. The running question is **when does giving a system more control improve the result enough to justify the added cost and failure modes?**
 
-Start with the [canonical 14-block curriculum](curriculum/index.qmd), from [Agent Fundamentals](curriculum/01-agent-fundamentals.qmd) to [Agentic System Design](curriculum/14-agentic-system-design.qmd), or run the [Python labs](labs/index.qmd) to inspect a typed tool boundary and an experiment loop. The [AutoResearch case study](case-studies/autoresearch.qmd) runs through the entire sequence.
+The course builds one system from start to finish. [AutoResearch](case-studies/autoresearch.qmd) is an agent for machine-learning modeling experiments, and each block adds one piece of it, from the ownership map in Block 01 to a design review with validated tools, isolated sub-agents, recovery, a protected evaluator and holdout, and evaluation evidence in Block 14. The [build roadmap](case-studies/autoresearch.qmd#building-autoresearch-block-by-block) lists the pieces.
+
+Start with the [canonical 14-block curriculum](curriculum/index.qmd), from [Agent Fundamentals](curriculum/01-agent-fundamentals.qmd) to [Agentic System Design](curriculum/14-agentic-system-design.qmd), or run the [Python labs](labs/index.qmd) to inspect a typed tool boundary, an experiment loop, and an explicit controller.
 
 ## How to study
 
-For each block, identify the decision the system must make, draw its state and permissions, and produce the requested artifact. Keep your baselines, assumptions, and failure traces alongside the result. Use the [literature reviews](literature/index.qmd) to see which conclusions come from published experiments and which remain design hypotheses.
+Each block reads from the big picture down to the details and back. For each one, identify the decision the system must make, draw its state and permissions, and see how the block's piece fits into AutoResearch. Keep your baselines, assumptions, and failure traces alongside the result. Use the [literature reviews](literature/index.qmd) to see which conclusions come from published experiments and which remain design hypotheses.
 
 Answer the conceptual questions yourself before discussing the design. Use the critique to revise your explanation, then compare it with model answers.
 

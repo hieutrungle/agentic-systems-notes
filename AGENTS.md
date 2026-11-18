@@ -16,9 +16,10 @@
 
 ## Teaching protocol
 
-- Open each block with a study question and include a study task and deliverable. Develop intuition, then show an architecture or diagram. Formalize where useful and connect the design to machine learning, reinforcement learning, control, or distributed systems. Identify which ideas are general concepts and which belong to a particular framework implementation.
-- Use original research, realistic examples, failure modes, production implications, and credible alternatives or disagreements. Connect the block to AutoResearch. Include approximately five conceptual questions.
-- Use the sequence **lesson → student answers → critique → model answers**. Keep full answers out of the main lesson so students can reason through the questions before reading a critique.
+- Write each block like a blog post that moves from a high-level overview to detailed concepts and back up to a conclusion. Open with the study question, a short answer, and a "Where this block fits" note that names the piece of AutoResearch the block builds. Close with an "AutoResearch after Block NN" summary and a conclusion that returns to the opening question.
+- Within the body, follow reasoning → architecture → formalization → systems connections → worked example → failure modes → production implications where it fits. Teach the worked design in the lesson and keep substantial implementation exercises in labs and design exercises. Identify which ideas are general concepts and which belong to a particular framework implementation. Use diagrams and animations where they make structure, ownership, or a sequence easier to understand.
+- Each block adds one piece to AutoResearch, following the build roadmap in `docs/case-studies/autoresearch.qmd`. By Block 14 the system has validated tool calls, isolated sub-agents for each role, durable state, recovery, a protected evaluator and holdout, and evaluation evidence.
+- Use original research, realistic examples, failure modes, production implications, and credible alternatives or disagreements. End with approximately five conceptual questions whose model answers are collapsed by default and usable by keyboard. In an interactive study session, let the student answer first, critique the answer, then show the model answer.
 
 ## Reference policy
 

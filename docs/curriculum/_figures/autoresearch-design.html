@@ -58,7 +58,7 @@
       <section id="autoresearch-proposal" data-overview-panel>
         <p class="agent-overview-owner">Learned policy</p>
         <p class="agent-overview-title">Propose trial</p>
-        <p>Choose a configuration to test a hypothesis or replicate a gain. Return the proposed arguments, such as learning rate and seed.</p>
+        <p>Choose a configuration to test a hypothesis or replicate a gain, or propose to stop. Return the proposed arguments, such as learning rate and seed.</p>
       </section>
       <section id="autoresearch-authorization" data-overview-panel>
         <p class="agent-overview-owner">Runtime</p>
@@ -73,12 +73,12 @@
       <section id="autoresearch-result" data-overview-panel>
         <p class="agent-overview-owner">Runtime</p>
         <p class="agent-overview-title">Record result</p>
-        <p>Update the ledger with the score and cost. Promote a candidate that beats the incumbent and passes the protocol checks.</p>
+        <p>Update the ledger with the score and cost. Promote a candidate that strictly beats the incumbent and passes the protocol checks.</p>
       </section>
       <section id="autoresearch-limits" data-overview-panel>
         <p class="agent-overview-owner">Runtime</p>
         <p class="agent-overview-title">Check limits</p>
-        <p>Apply the trial cap and compute limit. Continue by building context from the updated ledger, or stop and freeze the incumbent.</p>
+        <p>Apply the trial cap and compute limit, and accept or decline a proposed stop. Continue by building context from the updated ledger, or stop and freeze the incumbent.</p>
       </section>
       <section id="autoresearch-holdout" data-overview-panel>
         <p class="agent-overview-owner">Fixed evaluator</p>

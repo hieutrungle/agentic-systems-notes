@@ -2,7 +2,7 @@
 title: "System-design exercises"
 ---
 
-Every block has a deliverable. Use these longer exercises to combine its concepts and compare architectural choices.
+Use these longer exercises to combine concepts from several blocks and compare architectural choices.
 
 ## Experiment service with approvals
 
