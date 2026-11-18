@@ -5,7 +5,7 @@ subtitle: "Engineering reliable, scalable, production-grade AI agents"
 
 A 14-block study curriculum on how to design, evaluate, and operate AI systems that use tools and adapt to observations. The running question is **when does giving a system more control improve the result enough to justify the added cost and failure modes?**
 
-Start with the [canonical 14-block curriculum](curriculum/index.qmd), from [Agent Fundamentals](curriculum/01-agent-fundamentals.qmd) to [Agentic System Design](curriculum/14-agentic-system-design.qmd), or run the [Python labs](labs/index.qmd) to inspect a typed tool boundary and an experiment loop. The [AutoResearch case study](case-studies/autoresearch.qmd) runs through the entire sequence. Block 01 holds the foundation exercise and the outline for its next study session.
+Start with the [canonical 14-block curriculum](curriculum/index.qmd), from [Agent Fundamentals](curriculum/01-agent-fundamentals.qmd) to [Agentic System Design](curriculum/14-agentic-system-design.qmd), or run the [Python labs](labs/index.qmd) to inspect a typed tool boundary and an experiment loop. The [AutoResearch case study](case-studies/autoresearch.qmd) runs through the entire sequence.
 
 ## How to study
 

@@ -1,0 +1,31 @@
+digraph AgentRuntime {
+    graph [rankdir=TB, bgcolor=transparent, pad=0.18, nodesep=0.18, ranksep=0.27];
+    node [shape=box, style="rounded,filled", fillcolor="#edf3f7", color="#325167", fontname="sans-serif", fontsize=15, width=2.2, margin="0.15,0.07"];
+    edge [color="#325167", fontname="sans-serif", fontsize=13, arrowsize=0.72];
+
+    inputs [label="Goal g, runtime state zₜ\nand observation oₜ"];
+    context [label="Context builder φ"];
+    policy [label="Learned policy πθ", fillcolor="#dce9fa"];
+    authorize [label="Validate + authorize Γ", fillcolor="#fdf0d7", color="#986b26"];
+    execute [label="Executor"];
+    environment [label="Environment xₜ → xₜ₊₁", fillcolor="#f2f4f6"];
+    update [label="Update state U\nand check stop D"];
+    finish [label="End run", width=0.75, fillcolor="#f2f4f6"];
+    feedback_top [shape=point, width=0, style=invis, group=feedback];
+    feedback_bottom [shape=point, width=0, style=invis, group=feedback];
+
+    inputs -> context;
+    context -> policy [label=" cₜ"];
+    policy -> authorize [label=" Proposed ãₜ", penwidth=1.7];
+    authorize -> execute [label=" Authorized operation"];
+    execute -> environment [label=" Executed uₜ", penwidth=1.7];
+    environment -> update [label=" Observation oₜ₊₁"];
+    { rank=same; feedback_top; inputs; }
+    { rank=same; feedback_bottom; update; finish; }
+    feedback_top -> inputs [style=invis];
+    feedback_bottom -> update [style=invis];
+    update:w -> feedback_bottom [constraint=false, arrowhead=none, color="#1f4f8f", penwidth=2.3];
+    feedback_top -> feedback_bottom [label="Next\nturn", weight=10, arrowhead=none, color="#1f4f8f", fontcolor="#1f4f8f", penwidth=2.3];
+    feedback_top -> inputs:w [constraint=false, color="#1f4f8f", penwidth=2.3];
+    update -> finish [label=" done"];
+}

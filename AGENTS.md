@@ -19,7 +19,6 @@
 - Open each block with a study question and include a study task and deliverable. Develop intuition, then show an architecture or diagram. Formalize where useful and connect the design to machine learning, reinforcement learning, control, or distributed systems. Identify which ideas are general concepts and which belong to a particular framework implementation.
 - Use original research, realistic examples, failure modes, production implications, and credible alternatives or disagreements. Connect the block to AutoResearch. Include approximately five conceptual questions.
 - Use the sequence **lesson → student answers → critique → model answers**. Keep full answers out of the main lesson so students can reason through the questions before reading a critique.
-- Block 01 is a scaffold pending the planned Agent Fundamentals study session. Its placeholders mark topics for that session.
 
 ## Reference policy
 

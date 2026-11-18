@@ -6,7 +6,7 @@ The canonical sequence starts with control authority and ends with a system desi
 
 | Block | Topic | Study question |
 |---|---|---|
-| 01 | [Agent Fundamentals — What Is an Agent?](01-agent-fundamentals.qmd) | What changes when a model can observe the consequences of its own actions? |
+| 01 | [Agent Fundamentals — What Is an Agent?](01-agent-fundamentals.qmd) | What changes when a model can control a trajectory of actions? |
 | 02 | [Agent Loop and State Machines](02-agent-loop-state-machines.qmd) | When should transitions be explicit in the controller? |
 | 03 | [Tool Use](03-tool-use.qmd) | How does a controller turn a proposed action into a validated operation? |
 | 04 | [Context, State, and Memory](04-context-state-memory.qmd) | Which evidence should enter a model call, and what must survive a restart? |

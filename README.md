@@ -4,7 +4,7 @@ A 14-block research and study curriculum on tool-using AI systems. Follow the [c
 
 The [Agentic Systems series gateway](https://hieutrungle.github.io/blog/series/agentic-systems/) on Hieu T. Le's blog introduces the series. This repository is the technical source for the [standalone Quarto site](https://hieutrungle.github.io/agentic-systems-notes/), including its course material, runnable labs, and corrections.
 
-The [canonical curriculum](docs/curriculum/index.qmd) fixes the order, titles, and routes of the 14 blocks. AutoResearch is the running example from Agent Fundamentals to the Agentic System Design capstone. Block 01 is a scaffold for the upcoming study session.
+The [canonical curriculum](docs/curriculum/index.qmd) fixes the order, titles, and routes of the 14 blocks. AutoResearch is the running example from Agent Fundamentals to the Agentic System Design capstone. [Block 01](docs/curriculum/01-agent-fundamentals.qmd) introduces delegated control with a worked comparison of fixed and adaptive experiment search.
 
 ## How the course uses references
 

@@ -4,85 +4,288 @@ aliases:
   - 01-foundations.html
 ---
 
-What changes when a model can observe the consequences of its own actions?
+What actually changes when an LLM stops merely producing an answer and starts controlling a trajectory of actions?
 
-This outline preserves the original foundations exercise. The next study session will supply the full lesson.
+The architectural shift is **delegated control authority**. A model used for prediction produces a value for its caller. A model embedded in an agentic controller can influence which operation happens next, what the system learns from that operation, and which options are available later. The runtime still decides what the model is allowed to control.
 
 ## Learning objectives
 
-- Compare a single LLM call, a pipeline, a workflow, a tool-using workflow, and an agent by who controls the next step.
-- Identify the policy, state, action space, environment interface, control loop, and objective in a system.
+- Trace who owns each decision in a pipeline, a workflow, or a model-directed trajectory.
+- Separate the external world, runtime state, model-visible context, proposed action, and executed action.
+- Use feedback control and MDP/POMDP concepts to reason about the runtime without assuming it learns online.
+- Explain what a bounded agent adds over a fixed workflow and how to measure whether the additional control is worth deploying.
 
 ## 1. Why “agent” is hard to define
 
-*To develop in the study session. Compare definitions by the behavior and control authority each one describes.*
+The same label can describe a chatbot that hands one request to a handler or a system that spends an afternoon modifying code and checking its results. Anthropic's design guidance distinguishes code-defined workflows from agents that dynamically direct their process. OpenAI's guide also puts control of workflow execution at the center of its definition. These are useful conventions for comparing architectures. The term has no universally agreed boundary [@anthropic2024effectiveagents; @openaindbuildingagents].
+
+The course uses **control authority as an engineering lens**. Who can choose the next step, when can they choose again, and what can their decisions change? A useful counterfactual is whether a different model decision at time $t$ would materially change the rest of the run. A positive answer identifies some delegated control. A classifier can send one request down a different branch, so this test alone cannot distinguish a learned decision node from a policy that controls an entire trajectory.
+
+Feedback-conditioned control is central to the multi-step systems in this course. Broader uses of “agent” can include one-shot delegated decisions. Tool access, the number of model calls, and the complexity of the generated text can all vary independently of how much control is delegated.
 
 ## 2. LLM call vs pipeline vs workflow vs agent
 
-*To develop. Build a worked comparison from a single call through a tool-using workflow to an autonomous agent.*
+Begin with a support request. A model can draft a reply in one call. A pipeline can summarize the request, classify it, and draft a reply in a fixed order. A workflow can branch on explicit business rules and call an order API along one branch. Each design can use the same model. What changes is how the next operation gets chosen.
+
+```{mermaid}
+%%| label: fig-agent-control-progression
+%%| fig-cap: "Where control authority moves as execution becomes more adaptive."
+%%| fig-alt: "Seven stages. A single call produces a value, a pipeline runs a fixed sequence, and a workflow follows code-owned branches. Tool use adds access without shifting control. A learned node chooses one branch. A feedback-conditioned policy makes repeated choices. Broader delegation adds subgoals or stopping decisions."
+---
+config:
+  flowchart:
+    rankSpacing: 30
+    padding: 9
+---
+flowchart TD
+    Call["Single LLM call"] --> Pipeline["Fixed pipeline"]
+    Pipeline --> Workflow["Code-defined workflow"]
+    Workflow --> Tools["Tool-using workflow"]
+    Tools ==>|Delegate a branch| Router["Learned decision node"]
+    Router -->|Choose again after feedback| Agent["Feedback-conditioned agent"]
+    Agent -->|Delegate subgoals or stopping| Autonomous["Broader autonomy"]
+```
+
+The upper part of @fig-agent-control-progression has code-defined continuation. At the marked transition, a learned output first selects a path. Farther down, the policy gets another decision after execution, or gains authority over additional decisions. This is a progression of architectures, with no fixed cutoff or expectation that a design should move down it.
+
+Consider a support workflow with three predefined handlers for refunding, escalating, or rejecting. If a model selects one handler and code owns everything after that, the model has **local decision authority**. Give the model repeated opportunities to collect missing evidence and revise its next step, and it can shape the **trajectory** even if the operation set is fixed. Let it set subgoals or propose stopping, and the delegation gets broader. Each version still needs a separate rule about who may actually issue a refund. A policy in a simulator can exercise trajectory-level control with just three built-in actions and observations, without any external tool interface.
 
 ## 3. The control-authority boundary
 
-The original foundations lesson asked where control lives in a fixed workflow and in a model-directed loop. Identify who proposes an action, who authorizes it, and who decides whether the run stops [@anthropic2024effectiveagents; @yao2023react].
+Compare two uses of the same model. In a fixed document workflow, the program always sends a draft to a checker and then to a formatter. The model's output changes the document while code owns the next step. In a model-directed run, a failed check goes back into the policy's context. The policy can choose to request another piece of evidence, revise the draft, or ask for review. Code can enforce a finite graph of legal transitions in either design. What changes is who picks the transition at each decision point.
+
+ReAct is a research example of interleaving model decisions and environment interaction. Its observations can change later actions within a run. That architecture can be studied by looking at decisions and their consequences, without requiring private reasoning traces [@yao2023react].
+
+Write down the decision rights before drawing the system boxes. Let the policy propose operations where judgment or adaptation is useful. Put permissions, budgets, accounting, persistence, schema and state validation, retry limits, scheduling, and mandatory termination rules under runtime control. A person can own approval for a consequential action. The policy may judge that it has finished, while code can still require evidence of completion or stop on cancellation, deadline, or exhausted budget.
+
+### Animation · From an answer to a controlled trajectory {#agent-control-animation}
+
+<figure class="figure w-100">
+  <video controls preload="metadata" class="w-100" aria-label="From a single model call to a bounded feedback loop" aria-describedby="agent-control-transcript">
+    <source src="../assets/animations/agent-control-loop.mp4" type="video/mp4">
+    <a href="../assets/animations/agent-control-loop.mp4">Download the animation</a>
+  </video>
+  <figcaption class="figure-caption">A model proposes two different actions. The runtime authorizes each operation, and the first result changes the next proposal.</figcaption>
+</figure>
+
+<div id="agent-control-transcript">
+
+**Text walkthrough.** The silent animation opens with one model call that returns an answer. It then shows a workflow where the program orders draft, check, and format. In the adaptive run, the model proposes trying a candidate. The runtime authorizes the run, the environment returns a small gain with high variance, and the observation feeds back. The model now proposes a replication with a new seed. The runtime authorizes that run too, and the result leaves the gain uncertain. The architectural shift is delegated control over a trajectory.
+
+</div>
+
+For a static version, @fig-agent-control-progression shows the change in control rights and @fig-agent-runtime shows the proposal, authorization, execution, and feedback path.
 
 ## 4. Agenticity as a spectrum
 
-*To develop. Compare the scope of delegated decisions, the available actions, and the stop conditions.*
+A single score hides differences that matter during design review. Describe the system along three groups of dimensions.
+
+| Dimension | What to characterize |
+|---|---|
+| **Agency and control** | Which decisions are delegated, how broad the action set and goals are, how long the policy can act, how it adapts, and how actions and observations couple it to the environment. |
+| **Oversight and governance** | How often approval is needed, who supervises the run, what policy constraints apply, and where authority is handed back. |
+| **Risk and consequences** | What privileges can be exercised, how far their effects can spread, whether they can be reversed, and what financial or legal consequences they can carry. |
+
+A read-only research agent can independently choose sources and subgoals for an hour. Its write privileges can be minimal, although reading and sending data still carry their own risks. A payment workflow can have precisely one delegated decision and trigger an irreversible transfer. Reversibility describes the consequence of an action. Assess it separately from the amount of control the policy has.
 
 ## 5. Canonical agent model {#concepts}
 
-`Agent = Policy + State + Action Space + Environment Interface + Control Loop + Objective`
+**Agent = Policy + State + Action Space + Environment Interface + Control Loop + Objective**
 
-```text
-state and objective → policy → proposed action → environment interface
-        ↑                                                │
-        └──────────────── observation ──────────────────┘
+The plus signs indicate conceptual composition. Use this mnemonic to locate responsibilities. The runtime diagram makes the interfaces and the feedback path explicit.
+
+::: {style="max-width: 27rem; margin-inline: auto;"}
+
+```{dot}
+//| file: ../assets/diagrams/agent-runtime.dot
+//| label: fig-agent-runtime
+//| fig-width: 3.6
+//| fig-height: 5.2
+//| fig-cap: "The learned policy proposes an action. The runtime admits and dispatches it, then uses the observation to update state and decide whether to continue."
+//| fig-alt: "A goal, current observation, and runtime state feed a context builder and learned policy. The proposed action goes to a runtime gate. An authorized action goes to an executor, and the executed action reaches the environment. The next observation updates runtime state and the stop check. A feedback arrow brings the updated information back for the next decision."
 ```
 
-The controller incorporates observations into state and applies the termination rule.
+:::
+
+In @fig-agent-runtime, a proposal is data crossing into a trusted runtime. Authorization binds the operation to approved arguments and scope. The executor is a separate boundary because an approved action can fail before dispatch, or be dispatched before the caller can confirm its outcome. The return path tells the controller what is known and whether a new decision is possible.
+
+### One turn of the runtime
+
+Let $g$ be the delegated goal, $x_t$ the external state, $o_t$ the observation, and $z_t$ the controller's internal information state. The policy sees the context $c_t$ that the runtime constructs and the actions it makes available for proposal.
+
+$$
+\begin{aligned}
+c_t &= \phi(g,z_t,o_t) \\
+\tilde a_t &\sim \pi_\theta(\cdot\mid c_t,\mathcal A_t^{\mathrm{avail}}) \\
+a_t^{\mathrm{auth}} &= \Gamma(\tilde a_t,z_t,\mathcal A_t^{\mathrm{auth}},\rho_t) \\
+u_t &= \operatorname{dispatch}(a_t^{\mathrm{auth}},z_t)
+\end{aligned}
+$$
+
+Here $\phi$ selects and formats the model's inputs. $\pi_\theta$ is the proposal policy, including the model and how its output is decoded and interpreted. $\Gamma$ validates the proposal $\tilde a_t$ against the authorized operation set $\mathcal A_t^{\mathrm{auth}}$ and the current enforcement inputs $\rho_t$, such as approval, budget, and execution preconditions. It returns an approved operation $a_t^{\mathrm{auth}}$ or a local outcome such as reject or pause. In the latter case there is no external action to dispatch. $u_t$ denotes the operation actually applied at the environment boundary, with a no-op for a turn without an external operation. A lost acknowledgement can leave $u_t$ unknown to the runtime.
+
+$$
+\begin{aligned}
+x_{t+1} &\sim P(\cdot\mid x_t,u_t,\xi_t) \\
+o_{t+1} &\sim O(\cdot\mid x_{t+1},u_t) \\
+z_{t+1} &= U(z_t,\tilde a_t,e_t,o_{t+1}) \\
+d_{t+1} &= D(g,z_{t+1},o_{t+1})
+\end{aligned}
+$$
+
+The environment transition $P$ depends on its prior state, the applied operation, and exogenous changes $\xi_t$ such as another writer or preempted compute. The observation process $O$ returns what the interface exposes, perhaps just a job ID or a timeout. The state update $U$ records the proposal, observation, and execution record $e_t$. That record can explicitly mark the operation as rejected, pending, or unknown. The stop check $D$ decides whether the run continues or terminates and records why. These steps describe decision epochs. A tool operation can take any amount of wall-clock time between them.
 
 ## 6. Policy, state, action space, environment, objective
 
-*To develop. Identify the system boundary and distinguish goals, success conditions, and termination.*
+**Policy.** The LLM usually supplies a major learned component of proposal selection. Context construction, decoding, tool exposure, routing, validators, permission checks, approvals, and controller logic together determine the deployed behavior. SWE-agent studied the agent–computer interface as an intervention: its experiments show that exposing operations and feedback differently can change how a model navigates and edits repositories and how it performs on the tested tasks [@yang2024sweagent].
+
+**State.** A run ledger, pending job IDs, remaining budget, permissions, plan, and derived summaries can all belong to $z_t$. Some must survive a restart, while others can be recomputed. $c_t$ is a projection of goal, state, and observation for one decision. The prompt might contain a summary saying a job has finished. The ledger can retain which attempt that refers to, and the job service is the source of truth for what is actually running. The model's activations are internal to inference.
+
+**Action space and environment interface.** An action might be to retrieve a record, submit a job, wait, request approval, or propose finishing. A credential expiring or a queue filling changes the operations available for a particular run. The interface gives each operation a contract and decides what observations come back. A job submission can return an ID while completion and metrics arrive later.
+
+::: {.callout-important}
+## A proposal is separate from execution
+
+The **advertised tool catalog** describes supported operations. The **available action space** contains choices exposed at this decision. The **authorized action space** contains operations permitted under the current identity, budget, and approvals. Authorization still has to bind to a particular request and its arguments. The **executed action** is what the environment actually applies. Track these boundaries when diagnosing a trajectory.
+:::
+
+For instance, a training service can advertise cancellation, expose it when a run has active jobs, and authorize it only for the run's own job IDs. An approved cancellation can race with completion. The agent should learn which final state the scheduler reports before taking another action that depends on it. [Tool Use](03-tool-use.qmd) returns to operation contracts and validation.
+
+**Loop and objective.** The controller schedules a decision, dispatches the accepted action, assimilates new evidence, and decides whether to take another turn. The objective describes what a good trajectory achieves, including resource and risk constraints. It can be as concrete as improving a validation score under a compute cap. The runtime applies explicit acceptance and stopping conditions in addition to the policy's interpretation of the task.
 
 ## 7. The RL / MDP / POMDP connection
 
-*To develop. Connect ML policies and feedback control to the decision models introduced in [Block 02](02-agent-loop-state-machines.qmd).*
+**Established theory.** Sequential decision models separate environment dynamics from the policy that selects actions [@sutton2018reinforcement]. The correspondence is useful at a system boundary.
+
+| Agent engineering | RL or control abstraction |
+|---|---|
+| External system | Environment or plant |
+| Latent world state $x_t$ | State governing transitions |
+| Tool result, API response, or measurement $o_t$ | Observation |
+| Model and controller | Policy as realized by the system |
+| Applied environment operation $u_t$ | Action in the environment model |
+| Runtime state $z_t$ | Controller or information state |
+| Task objective and constraints | Criterion over trajectories |
+| Runtime stopping rule | Terminal condition for the run |
+
+An MDP is a useful abstraction when the decision maker has a sufficient Markov state. An API-driven system commonly acts on partial and delayed observations. A worker may have written a checkpoint while the status endpoint still says “running.” The controller can wait, re-observe, or make a decision that tolerates the uncertainty. This is a state-estimation problem as well as an action-selection problem. A feedback loop with an unreliable observation channel can repeatedly make the wrong correction.
+
+In a POMDP with specified dynamics, observation model, and prior, the Bayesian belief is the posterior over external states [@kaelbling1998pomdp].
+
+$$
+b_t(x) = \mathbb P(x_t=x \mid o_{\le t},u_{<t}).
+$$
+
+This expression assumes the relevant actions are known. For ambiguous execution, a model would also need to account for uncertainty about what was applied. Histories, memory, retrieval, and summaries can provide an **approximate information state** for a deployed policy. A summary of recent job results does not in general represent a calibrated posterior or a sufficient statistic. [Block 02](02-agent-loop-state-machines.qmd) develops explicit transitions and controller state. [Block 04](04-context-state-memory.qmd) revisits the boundary between context and persistence.
+
+Keep the criteria at different layers separate.
+
+| Criterion | Example in an experiment agent |
+|---|---|
+| **Task objective** | Find a stronger configuration within a resource envelope. |
+| **Runtime success criterion** | Accept a candidate that passes the protocol's validation and artifact checks. |
+| **RL reward** | A scalar signal defined for policy optimization, if such training is used. |
+| **Model training loss** | The optimization objective used to fit the proposal model, such as token prediction loss. |
+| **Evaluation metric** | Independently measured quality, cost, or completion for comparing deployed systems. |
+| **Termination rule** | End when the trial cap, deadline, cancellation, or verified completion condition is reached. |
+
+A run can end without succeeding. An evaluator's metric can inform candidate selection without serving as an RL reward. The decision-process model describes the runtime trajectory. A pretrained policy can execute it without online RL or weight updates. [Block 13](13-learning-agents-rl.qmd) addresses training the policy that operates inside that runtime.
 
 ## 8. Autonomy vs agency
 
-*To develop. Examine agency under bounded delegation and authority retained by a person or controller.*
+**Agency describes which decisions the policy controls. Autonomy describes how much discretion and independence the system has in exercising that control.** A model can choose which tests to run and revise a local patch in response to failures. The runtime can confine it to a disposable workspace, disable network access, allowlist tools, impose rate and turn limits, and require human approval for actions beyond the workspace. The model still makes meaningful decisions inside that envelope.
+
+Conversely, permissions enlarge the set of consequences. They do not improve a policy's judgment. A design review should identify the capabilities needed for the task, who can widen them, and what happens when a request crosses the boundary.
 
 ## 9. When to use a fixed workflow
 
-*To develop. Compare fixed and adaptive control when requirements are known, predictable, or costly to verify.*
+Which decisions actually benefit from learned adaptive control? Start with the strongest simple baseline that can meet the requirement. Anthropic's design guidance similarly recommends beginning with simple approaches and adding complexity where it pays off [@anthropic2024effectiveagents].
+
+- **Stable process or mandatory invariant.** Encode known branching conditions, accounting rules, and approval requirements. A model can extract the inputs while code enforces the rule.
+- **Tight latency, compute, or cost budget.** Extra model calls, tool round trips, and serial waiting can dominate tail latency and dollars per successful task. A fixed workflow can parallelize independent steps when the task allows it.
+- **Strict reproducibility.** A fixed plan reduces sources of trajectory variance. Where adaptation is valuable, record state, action and observation history, versions, and budgets so a run can be analyzed.
+- **High-impact operations or weak evidence.** Keep irreversible operations behind independent authorization. Poor observability, a noisy evaluator, or an unclear stopping rule makes it hard to decide whether another model-directed step helps. A rules-based fallback or human escalation may be the right baseline.
+
+A deterministic controller can also adapt to feedback. If a well-tested rule or optimizer already chooses effective actions, compare against that adaptive baseline before attributing a gain to the model.
 
 ## 10. AutoResearch example
 
+Suppose the task is to improve a training configuration under a compute cap. Start with a versioned baseline, a fixed evaluator and validation metric, and a separate final holdout. The [AutoResearch case study](../case-studies/autoresearch.qmd) connects this setup to Karpathy's training loop and to the course's scripted local experiment [@karpathy2026autoresearch]. The designs below are illustrative comparisons.
+
+::: {style="max-width: 26rem; margin-inline: auto;"}
+
+```{dot}
+//| file: ../assets/diagrams/agent-experiment-control.dot
+//| label: fig-agent-experiment-control
+//| fig-width: 3.4
+//| fig-height: 5.5
+//| fig-cap: "In the fixed batch, observed scores determine the winner only. In the adaptive loop, they also affect which experiment runs next."
+//| fig-alt: "Left, preselect five configurations, run trials one through five, select the best validation result, and stop. Right, choose and run a trial, observe its metrics, and update runtime state. A highlighted feedback arrow carries the evidence back for another choice, unless the run stops."
+```
+
+:::
+
+On the left of @fig-agent-experiment-control, even an LLM could preselect all five configurations. The outcome of the first trial cannot change the second trial. This is **open-loop with respect to experiment selection and intermediate results**. The final selector still uses validation scores. On the right, a hypothesis leads to a trial, a measurement, and a revised choice. A small apparent gain with high seed variance could prompt a controlled replication instead of a wider search. The measurement changes how the remaining compute is spent.
+
+In a middle case, the controller fixes the trial count while each new configuration can depend on measurements so far. That is **closed-loop adaptive control with a fixed horizon**. It illustrates why the termination owner and the next-action owner should be recorded separately. A grid search, a feedback-driven optimizer, and an LLM proposal policy can all operate under the same trial cap.
+
+| Component | In the adaptive design |
+|---|---|
+| **Policy** | Choose a configuration or a diagnostic using hypotheses, results, and remaining budget. |
+| **Runtime state** | Record the incumbent, configuration and code versions, trial ledger, pending jobs, and remaining budget. |
+| **Actions** | Propose a configuration, launch a permitted trial, ask for a replication, wait, or propose stopping when the protocol allows it. |
+| **Observations** | Job status, validation metrics, curves, logs, or a failure report. |
+| **Environment** | Dataset versions, training code, compute workers, scheduler, and artifact store. |
+| **Objective** | Improve on the baseline under the declared compute and evaluation protocol. |
+| **Termination** | The controller ends on trial cap, deadline, cancellation, or a protocol-defined completion condition. |
+
+**Empirical evidence.** MLAgentBench evaluates iterative ML experimentation. MLE-bench evaluates system configurations that combine models and agent scaffolds on offline Kaggle tasks. They are examples of evaluating an interactive system under a specified protocol. To attribute a gain to learned control, compare systems under comparable model, tool and context access, trial budget, and time limits. Record what else changed, including retries and stop rules [@huang2024mlagentbench; @chan2025mlebench].
+
 ### Study task
 
-For the [AutoResearch case](../case-studies/autoresearch.qmd), draw one-shot prediction, fixed candidate search, and adaptive candidate search. Mark who chooses the next action and where each run terminates.
+Draw three versions of the same AutoResearch problem.
+
+1. **One-shot prediction.** Return one configuration from the task and baseline.
+2. **Fixed candidate search.** Commit to a batch of configurations before seeing results.
+3. **Adaptive candidate search.** Let intermediate observations affect later configurations.
+
+For each version, mark who chooses the next action, which observations enter the decision, what state persists, who selects the final candidate, and what ends the run. Use the same baseline, validation metric, and resource cap for the comparison. Keep final holdout results outside candidate selection.
 
 ### Deliverable
 
-Produce three diagrams and a table comparing decision authority, termination, and one measurable benefit of added autonomy.
+Submit three small diagrams and a decision table comparing authority, observations, state, action selection, and termination. Name one measurable benefit the adaptive design should deliver, such as lower compute to reach the same validation target, and describe what result would make you keep the fixed approach.
 
 ## 11. Production implications
 
-*To develop. Connect decision authority to permissions, reproducibility, failure modes, and operating cost.*
+A practical hybrid uses a **deterministic supervisor around a bounded model decision**. The controller constructs context from current state and an explicit action set. The policy proposes an operation. Independent validation and authorization check the request before the executor can change the environment. The controller records the outcome, updates state, and applies the stop check before scheduling another decision. @fig-agent-runtime traces these responsibilities.
+
+This resembles supervisory control. The policy supplies adaptive decisions, while an independent layer enforces the execution envelope. Ordinary LLM guardrails do not establish formal runtime assurance. If violating an invariant is unacceptable, enforce it independently of the same fallible model whose behavior it constrains. For AutoResearch, an executor can hold a compute reservation and a scoped credential even if the prompt says the next trial is cheap. An approval can bind to the exact operation and parameters, rather than to a mutable plan. OpenAI's guide describes human intervention for consequential actions as a production pattern, one implementation choice for this general architecture [@openaindbuildingagents].
+
+The observations themselves need operational semantics. After a timeout, the request may have failed before submission or reached a worker before the response was lost. Before retrying, reconcile with the scheduler or rely on an executor that deduplicates requests by operation ID. A valid observation can become stale when another writer acts, so revalidate preconditions at the execution boundary. Once a job has consumed compute, cancellation or another compensating action can limit further harm. The resources already spent are gone. [Reliability and Failure Recovery](10-reliability-recovery.qmd) develops these cases.
 
 ## 12. Interview / system-design mental model
 
-*To develop. Practice identifying the control boundary and proposing a baseline before naming a framework.*
+Start a design review by tracing a normal turn and a turn where the policy is wrong. Mark the learned and deterministic decisions before choosing a framework.
+
+| Review area | Questions to ask |
+|---|---|
+| **Authority** | Which decisions are learned? Which are deterministic? What can the model propose, what can execute, and who authorizes it? |
+| **State and evidence** | What persists across turns or restarts? What does the model actually observe? How fresh and trustworthy are those observations? |
+| **External effects** | What changes outside the controller? What can change concurrently? How will the runtime tell which action took effect? |
+| **Failure and termination** | What is the stopping rule? What happens when the model is wrong or progress stalls? Who can pause, recover, or take over? |
+| **Value of control** | What is the strongest baseline without learned control? What measurable benefit does the added autonomy provide, and what does it cost in latency, compute, dollars, variance, and risk? |
+
+To isolate the value of a decision right, hold the model, evidence, evaluator, and budget fixed where possible and change who makes that decision. A framework can implement the loop or state store. The design should still say what information goes into a decision, what the decision can change, and who remains accountable for execution.
 
 ## 13. Companion reading {#companion-reading}
 
-The [primary book companions](../index.qmd#primary-book-companions) support the sequence. Add chapter pointers after the lesson is developed.
+- *AI Agents in Action*, second edition, chapter 1, “The rise of AI agents.” Compare the chapter's assistant and autonomous agent patterns by the decisions each delegates [@lanham2026aiagents].
+- *Building Applications with AI Agents*, chapter 1, “Introduction to Agents,” especially “Workflows and Agents.” Compare the book's terminology with the control boundary used here [@albada2025applications].
 
 ## 14. Conceptual questions
 
-1. Which decision separates a tool-using workflow from an agent in your example?
-2. What changes when an action can produce an observation that alters the next action?
-3. How would you identify the environment boundary and success condition in AutoResearch?
-4. What explains the difference between a policy and the system that runs it?
-5. Which failure or cost would lead you to choose fixed control?
+1. A customer-support system has exactly three predefined branches: refund, escalate, or reject. An LLM selects the branch. Is this best described as a workflow, an agent, or an intermediate architecture? Defend your answer in terms of control authority.
+2. AutoResearch always runs exactly five experiments. The LLM selects the next configuration based on previous metrics, but cannot change the experiment count, inspect papers, modify code, or terminate early. How agentic is this system, and which parts remain deterministic?
+3. For a coding agent, identify the policy, action space, observations, environment, runtime state, and terminal condition.
+4. A system can call arbitrary tools but has no persistent memory beyond the context supplied to the current model call. Can it still be an agent? Is persistent memory necessary for agency?
+5. A deterministic workflow succeeds 96% of the time, costs \$0.02, and takes 500 ms. An agent succeeds 97.5% of the time, costs \$0.40, and takes 14 seconds. What additional information would you need before deciding which system is better?
