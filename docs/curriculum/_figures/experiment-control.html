@@ -1,0 +1,78 @@
+<div class="agent-animation" data-agent-animation="experiments">
+  <p class="agent-figure-kicker">Illustrative control flow · scores are schematic</p>
+  <div class="agent-comparison" id="agent-experiment-readout">
+    <section class="agent-panel" aria-labelledby="agent-fixed-title">
+      <h3 id="agent-fixed-title">Fixed batch</h3>
+      <p>Commit to A → B → C before running.</p>
+      <svg class="agent-diagram" data-track viewBox="0 0 240 202" role="img" aria-labelledby="fixed-svg-title" aria-describedby="fixed-svg-desc">
+        <title id="fixed-svg-title">Fixed experiment selection</title>
+        <desc id="fixed-svg-desc">The list A, B, C defines the execution order. Scores flow to final selection only. There is no edge from scores back to the list.</desc>
+        <defs>
+          <marker id="fixed-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0 0 8 4 0 8Z" fill="context-stroke"/>
+          </marker>
+        </defs>
+        <g class="agent-edges" marker-end="url(#fixed-arrow)">
+          <path data-edge="choose-run" d="M120 35V59"/>
+          <path data-edge="run-observe" d="M120 89V114"/>
+          <path data-edge="observe-end" d="M120 144V169"/>
+        </g>
+        <g class="agent-node" data-node="choose"><rect x="23" y="5" width="194" height="30" rx="6"/><text x="120" y="25">Preselect A → B → C</text></g>
+        <g class="agent-node" data-node="run"><rect x="23" y="59" width="194" height="30" rx="6"/><text x="120" y="79">Run next in list</text></g>
+        <g class="agent-node" data-node="observe"><rect x="23" y="114" width="194" height="30" rx="6"/><text x="120" y="134">Collect scores</text></g>
+        <g class="agent-node" data-node="end"><rect x="23" y="169" width="194" height="30" rx="6"/><text x="120" y="189">Select after trial 3</text></g>
+        <circle class="agent-packet" data-packet r="5.5" visibility="hidden" aria-hidden="true"/>
+      </svg>
+      <ol class="agent-trials" aria-label="Fixed experiment configurations and scores">
+        <li><span>A</span><b data-score>0.81</b></li>
+        <li><span>B</span><b data-score>0.79</b></li>
+        <li><span>C</span><b data-score>0.83</b></li>
+      </ol>
+      <p class="agent-experiment-message" data-experiment-message>The scores decide the winner, C. The run order was fixed.</p>
+    </section>
+    <section class="agent-panel" aria-labelledby="agent-adaptive-title">
+      <h3 id="agent-adaptive-title">Adaptive search</h3>
+      <p>Choose again after observing a result.</p>
+      <svg class="agent-diagram" data-track viewBox="0 0 240 202" role="img" aria-labelledby="adaptive-svg-title" aria-describedby="adaptive-svg-desc">
+        <title id="adaptive-svg-title">Feedback-conditioned experiment selection</title>
+        <desc id="adaptive-svg-desc">Choose and run a configuration, observe the score, then update state. The feedback edge returns from state to the chooser for trials remaining under the three-trial cap.</desc>
+        <defs>
+          <marker id="adaptive-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0 0 8 4 0 8Z" fill="context-stroke"/>
+          </marker>
+        </defs>
+        <g class="agent-edges" marker-end="url(#adaptive-arrow)">
+          <path data-edge="choose-run" d="M96 35V59"/>
+          <path data-edge="run-observe" d="M96 89V114"/>
+          <path data-edge="observe-update" class="agent-return" d="M96 144V169"/>
+          <path data-edge="feedback" class="agent-return" d="M179 184H222V20H179"/>
+        </g>
+        <text class="agent-edge-labels agent-return-label" x="215" y="133" transform="rotate(-90 215 133)">Feedback</text>
+        <g class="agent-node" data-node="choose"><rect x="13" y="5" width="166" height="30" rx="6"/><text x="96" y="25">Choose config</text></g>
+        <g class="agent-node" data-node="run"><rect x="13" y="59" width="166" height="30" rx="6"/><text x="96" y="79">Run experiment</text></g>
+        <g class="agent-node" data-node="observe"><rect x="13" y="114" width="166" height="30" rx="6"/><text x="96" y="134">Observe score</text></g>
+        <g class="agent-node" data-node="update"><rect x="13" y="169" width="166" height="30" rx="6"/><text x="96" y="189">Update state</text></g>
+        <circle class="agent-packet" data-packet r="5.5" visibility="hidden" aria-hidden="true"/>
+      </svg>
+      <ol class="agent-trials" aria-label="Adaptive experiment configurations and scores">
+        <li><span data-config>A</span><b data-score>0.81</b></li>
+        <li><span data-config>B′</span><b data-score>0.84</b></li>
+        <li><span data-config>C′</span><b data-score>0.82</b></li>
+      </ol>
+      <p class="agent-experiment-message" data-experiment-message>A’s score informs B′. B′’s score informs a replication, C′. B′ wins after trial 3.</p>
+    </section>
+  </div>
+  <p class="agent-figure-note"><strong>Fixed horizon ≠ open loop.</strong> Both runs stop after three experiments. The adaptive run can still change which configuration it tries next.</p>
+  <div class="agent-controls" data-controls hidden role="group" aria-label="Experiment comparison controls">
+    <div class="agent-buttons">
+      <button type="button" data-restart aria-label="Restart experiment comparison" aria-controls="agent-experiment-readout">Restart</button>
+      <button type="button" data-previous aria-label="Previous experiment stage" aria-controls="agent-experiment-readout">← Step</button>
+      <button type="button" data-play aria-label="Play experiment comparison" aria-controls="agent-experiment-readout">Play</button>
+      <button type="button" data-next aria-label="Next experiment stage" aria-controls="agent-experiment-readout">Step →</button>
+    </div>
+    <div class="agent-timeline">
+      <input type="range" min="0" step="1" value="0" data-seek aria-label="Experiment comparison stage" aria-controls="agent-experiment-readout">
+      <p data-status role="status"></p>
+    </div>
+  </div>
+</div>

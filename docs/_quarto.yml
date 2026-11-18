@@ -3,7 +3,7 @@ project:
   output-dir: _site
   resources:
     - assets/animations/autoresearch-loop.mp4
-    - assets/animations/agent-control-loop.mp4
+    - assets/js/agent-fundamentals-animations.js
   render:
     - index.qmd
     - curriculum/*.qmd

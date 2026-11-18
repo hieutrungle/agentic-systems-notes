@@ -1,0 +1,97 @@
+<div class="agent-animation" data-agent-animation="runtime">
+  <p class="agent-figure-kicker">Illustrative trajectory</p>
+  <div class="agent-runtime-layout">
+    <svg class="agent-diagram agent-runtime-diagram" data-track viewBox="0 0 320 398" role="img" aria-labelledby="runtime-svg-title" aria-describedby="runtime-svg-desc agent-control-transcript">
+      <title id="runtime-svg-title">AutoResearch feedback-conditioned control loop</title>
+      <desc id="runtime-svg-desc">Inputs pass down the left through context construction, the learned policy, authorization, and execution. The environment is at bottom right. Its observation travels up through the state update and stop check. If the run continues, the new state and observation return to the inputs for the next decision.</desc>
+      <defs>
+        <marker id="runtime-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0 0 8 4 0 8Z" fill="context-stroke"/>
+        </marker>
+      </defs>
+      <g class="agent-edges" marker-end="url(#runtime-arrow)">
+        <path data-edge="inputs-context" d="M80 78V107"/>
+        <path data-edge="context-policy" d="M80 156V185"/>
+        <path data-edge="policy-gate" d="M80 234V263"/>
+        <path data-edge="gate-executor" d="M80 312V341"/>
+        <path data-edge="executor-environment" d="M150 366H173"/>
+        <path data-edge="environment-observation" class="agent-return" d="M245 341V313"/>
+        <path data-edge="observation-update" class="agent-return" d="M245 263V235"/>
+        <path data-edge="feedback" class="agent-return" d="M245 185V47H151"/>
+      </g>
+      <g class="agent-edge-labels">
+        <text x="89" y="254">Proposed ãₜ</text>
+        <text x="89" y="332">Authorized</text>
+        <text class="agent-return-label" x="253" y="90"><tspan>Next</tspan><tspan x="253" dy="16">turn</tspan></text>
+      </g>
+      <g class="agent-node" data-node="inputs">
+        <rect x="10" y="16" width="140" height="62" rx="7"/>
+        <text x="80" y="35">Inputs</text>
+        <text class="agent-node-detail" x="80" y="53">Goal g · state zₜ</text>
+        <text class="agent-node-detail" x="80" y="70">Observation oₜ</text>
+      </g>
+      <g class="agent-node" data-node="context">
+        <rect x="10" y="107" width="140" height="49" rx="7"/>
+        <text x="80" y="128">Context builder</text>
+        <text class="agent-node-detail" x="80" y="146">φ</text>
+      </g>
+      <g class="agent-node" data-node="policy">
+        <rect x="10" y="185" width="140" height="49" rx="7"/>
+        <text x="80" y="206">Proposal policy</text>
+        <text class="agent-node-detail" x="80" y="224">Learned · π<tspan baseline-shift="sub" font-size="10">θ</tspan></text>
+      </g>
+      <g class="agent-node agent-gate" data-node="gate">
+        <rect x="10" y="263" width="140" height="49" rx="7"/>
+        <text x="80" y="284">Validate +</text>
+        <text x="80" y="302">authorize Γ</text>
+      </g>
+      <g class="agent-node" data-node="executor">
+        <rect x="10" y="341" width="140" height="49" rx="7"/>
+        <text x="80" y="362">Executor</text>
+        <text class="agent-node-detail" x="80" y="380">Executed uₜ →</text>
+      </g>
+      <g class="agent-node" data-node="environment">
+        <rect x="174" y="341" width="140" height="49" rx="7"/>
+        <text x="244" y="362">Environment</text>
+        <text class="agent-node-detail" x="244" y="380">Training job</text>
+      </g>
+      <g class="agent-node" data-node="observation">
+        <rect x="174" y="263" width="140" height="49" rx="7"/>
+        <text x="244" y="284">Observation</text>
+        <text class="agent-node-detail" x="244" y="302">oₜ₊₁ · score, cost</text>
+      </g>
+      <g class="agent-node" data-node="update">
+        <rect x="174" y="185" width="140" height="49" rx="7"/>
+        <text x="244" y="206">Update state U</text>
+        <text class="agent-node-detail" x="244" y="224">Stop check D</text>
+      </g>
+      <circle class="agent-packet" data-packet r="5.5" visibility="hidden" aria-hidden="true"/>
+    </svg>
+    <div class="agent-runtime-readout" id="agent-runtime-readout">
+      <p class="agent-transfer" data-transfer hidden></p>
+      <div class="agent-message">
+        <p class="agent-message-label" data-message>Initial inputs · g, z₀, o₀</p>
+        <p class="agent-message-value" data-value>Improve validation performance within 2 GPU-h. Baseline metrics are available.</p>
+        <p class="agent-explanation" data-detail>The goal, recorded state, and observation enter the controller.</p>
+      </div>
+      <dl class="agent-state" aria-label="AutoResearch runtime state">
+        <div><dt>Incumbent</dt><dd data-state>Baseline</dd></div>
+        <div><dt>Validation</dt><dd data-state>0.842</dd></div>
+        <div><dt>Budget left</dt><dd data-state>2.0 GPU-h</dd></div>
+        <div><dt>Pending jobs</dt><dd data-state>0</dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="agent-controls" data-controls hidden role="group" aria-label="Runtime animation controls">
+    <div class="agent-buttons">
+      <button type="button" data-restart aria-label="Restart runtime animation" aria-controls="agent-runtime-readout">Restart</button>
+      <button type="button" data-previous aria-label="Previous runtime stage" aria-controls="agent-runtime-readout">← Step</button>
+      <button type="button" data-play aria-label="Play runtime animation" aria-controls="agent-runtime-readout">Play</button>
+      <button type="button" data-next aria-label="Next runtime stage" aria-controls="agent-runtime-readout">Step →</button>
+    </div>
+    <div class="agent-timeline">
+      <input type="range" min="0" step="1" value="0" data-seek aria-label="Runtime animation stage" aria-controls="agent-runtime-readout">
+      <p data-status role="status"></p>
+    </div>
+  </div>
+</div>

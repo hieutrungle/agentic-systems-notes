@@ -2,11 +2,14 @@
 title: "Agent Fundamentals — What Is an Agent?"
 aliases:
   - 01-foundations.html
+css: ../assets/css/agent-fundamentals-animations.css
 ---
 
 What actually changes when an LLM stops merely producing an answer and starts controlling a trajectory of actions?
 
 The architectural shift is **delegated control authority**. A model used for prediction produces a value for its caller. A model embedded in an agentic controller can influence which operation happens next, what the system learns from that operation, and which options are available later. The runtime still decides what the model is allowed to control.
+
+<script type="module" src="../assets/js/agent-fundamentals-animations.js"></script>
 
 ## Learning objectives
 
@@ -60,21 +63,13 @@ Write down the decision rights before drawing the system boxes. Let the policy p
 
 ### Animation · From an answer to a controlled trajectory {#agent-control-animation}
 
-<figure class="figure w-100">
-  <video controls preload="metadata" class="w-100" aria-label="From a single model call to a bounded feedback loop" aria-describedby="agent-control-transcript">
-    <source src="../assets/animations/agent-control-loop.mp4" type="video/mp4">
-    <a href="../assets/animations/agent-control-loop.mp4">Download the animation</a>
-  </video>
-  <figcaption class="figure-caption">A model proposes two different actions. The runtime authorizes each operation, and the first result changes the next proposal.</figcaption>
-</figure>
+[Play or step through the runtime figure below](#fig-agent-runtime) to trace how an observation changes the next proposal.
 
-<div id="agent-control-transcript">
+::: {#agent-control-transcript}
+**Text walkthrough.** In this illustrative AutoResearch run, the goal is to improve a validation score of 0.842 within 2 GPU-hours. The context builder selects the baseline, budget, and job status for the policy. The policy proposes a trial at learning rate 3e-4 and seed 7. The runtime checks the tool, parameters, budget, and approval requirements before the executor submits job #42.
 
-**Text walkthrough.** The silent animation opens with one model call that returns an answer. It then shows a workflow where the program orders draft, check, and format. In the adaptive run, the model proposes trying a candidate. The runtime authorizes the run, the environment returns a small gain with high variance, and the observation feeds back. The model now proposes a replication with a new seed. The runtime authorizes that run too, and the result leaves the gain uncertain. The architectural shift is delegated control over a trajectory.
-
-</div>
-
-For a static version, @fig-agent-control-progression shows the change in control rights and @fig-agent-runtime shows the proposal, authorization, execution, and feedback path.
+The job returns a score of 0.851 at a cost of 0.6 GPU-hours. The controller records #42 as the incumbent, updates the remaining budget to 1.4 GPU-hours, and continues. The new context leads the policy to propose a replication with seed 11. That second proposal stays at the proposal boundary in the example. The architectural shift is delegated control over a trajectory.
+:::
 
 ## 4. Agenticity as a spectrum
 
@@ -94,16 +89,15 @@ A read-only research agent can independently choose sources and subgoals for an 
 
 The plus signs indicate conceptual composition. Use this mnemonic to locate responsibilities. The runtime diagram makes the interfaces and the feedback path explicit.
 
-::: {style="max-width: 27rem; margin-inline: auto;"}
+::: {#fig-agent-runtime}
 
-```{dot}
-//| file: ../assets/diagrams/agent-runtime.dot
-//| label: fig-agent-runtime
-//| fig-width: 3.6
-//| fig-height: 5.2
-//| fig-cap: "The learned policy proposes an action. The runtime admits and dispatches it, then uses the observation to update state and decide whether to continue."
-//| fig-alt: "A goal, current observation, and runtime state feed a context builder and learned policy. The proposed action goes to a runtime gate. An authorized action goes to an executor, and the executed action reaches the environment. The next observation updates runtime state and the stop check. A feedback arrow brings the updated information back for the next decision."
+```{=html}
+
+{{< include _figures/runtime.html >}}
+
 ```
+
+The learned policy proposes an action. The runtime authorizes and dispatches it. Results travel back to update state and inform the next decision.
 
 :::
 
@@ -212,20 +206,19 @@ A deterministic controller can also adapt to feedback. If a well-tested rule or 
 
 Suppose the task is to improve a training configuration under a compute cap. Start with a versioned baseline, a fixed evaluator and validation metric, and a separate final holdout. The [AutoResearch case study](../case-studies/autoresearch.qmd) connects this setup to Karpathy's training loop and to the course's scripted local experiment [@karpathy2026autoresearch]. The designs below are illustrative comparisons.
 
-::: {style="max-width: 26rem; margin-inline: auto;"}
+::: {#fig-agent-experiment-control}
 
-```{dot}
-//| file: ../assets/diagrams/agent-experiment-control.dot
-//| label: fig-agent-experiment-control
-//| fig-width: 3.4
-//| fig-height: 5.5
-//| fig-cap: "In the fixed batch, observed scores determine the winner only. In the adaptive loop, they also affect which experiment runs next."
-//| fig-alt: "Left, preselect five configurations, run trials one through five, select the best validation result, and stop. Right, choose and run a trial, observe its metrics, and update runtime state. A highlighted feedback arrow carries the evidence back for another choice, unless the run stops."
+```{=html}
+
+{{< include _figures/experiment-control.html >}}
+
 ```
+
+In the fixed batch, scores determine the winner. In the adaptive loop, scores also affect which experiment runs next.
 
 :::
 
-On the left of @fig-agent-experiment-control, even an LLM could preselect all five configurations. The outcome of the first trial cannot change the second trial. This is **open-loop with respect to experiment selection and intermediate results**. The final selector still uses validation scores. On the right, a hypothesis leads to a trial, a measurement, and a revised choice. A small apparent gain with high seed variance could prompt a controlled replication instead of a wider search. The measurement changes how the remaining compute is spent.
+On the left of @fig-agent-experiment-control, even an LLM could preselect all three configurations. The outcome of the first trial cannot change the second trial. This is **open-loop with respect to experiment selection and intermediate results**. The final selector still uses validation scores. On the right, a hypothesis leads to a trial, a measurement, and a revised choice. A small apparent gain with high seed variance could prompt a controlled replication instead of a wider search. The measurement changes how the remaining compute is spent.
 
 In a middle case, the controller fixes the trial count while each new configuration can depend on measurements so far. That is **closed-loop adaptive control with a fixed horizon**. It illustrates why the termination owner and the next-action owner should be recorded separately. A grid search, a feedback-driven optimizer, and an LLM proposal policy can all operate under the same trial cap.
 

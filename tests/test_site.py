@@ -19,7 +19,9 @@ class Page(HTMLParser):
         attributes = dict(attrs)
         if anchor := attributes.get("id"):
             self.anchors.add(anchor)
-        attribute = {"a": "href", "img": "src", "video": "src", "source": "src"}.get(tag)
+        attribute = {"a": "href", "img": "src", "video": "src", "source": "src", "script": "src"}.get(tag)
+        if tag == "link" and attributes.get("rel") == "stylesheet":
+            attribute = "href"
         if attribute and (value := attributes.get(attribute)):
             self.local_links.append(value)
         if (
