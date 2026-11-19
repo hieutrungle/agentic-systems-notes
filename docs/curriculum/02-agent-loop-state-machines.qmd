@@ -184,22 +184,7 @@ Step through two runs of trial t1. Each stage shows one transition and its effec
 
 :::
 
-@fig-controller-trace starts with the ordinary trial selected. The table below lists the same transitions. Run `python -m labs.controller --scenario ordinary` to reproduce them.
-
-::: {.table-responsive tabindex="0" role="region" aria-label="Ordinary trial trace"}
-
-| Checkpoint | Transition (row) | Event | What changed |
-|--|-----|------|---------|
-| 1 | Ready → Proposing (1) | Limits checked | Context $c_1$ built: baseline 0.842, 2.0 GPU-h and 5 trials left |
-| 2 | Proposing → Authorizing (3) | **Policy, turn 1:** trial with lr 3e-4, seed 7, estimate 0.7 GPU-h | Proposal 1 of 10 recorded |
-| 3 | Authorizing → Dispatching (7) | Gate: allowed for these arguments | Trial t1 and operation `t1-submit` minted, request stored, 0.7 GPU-h reserved, trial 1 of 5 counted. The commit precedes the send. |
-| 4 | Dispatching → Running (8) | Scheduler: accepted job #42 | Job ID recorded |
-| 5 | Running → Scoring (9) | Scheduler: job #42 done, cost 0.6 GPU-h | Cost recorded, score requested as `t1-score` |
-| 6 | Scoring → Ready (11) | Evaluator: t1 scores 0.851 | 0.6 GPU-h charged, reservation released, t1 kept as incumbent and closed. 1.4 GPU-h unspent. |
-| 7 | Ready → Proposing (1) | Limits checked | Context $c_2$ built: incumbent t1 at 0.851, 1.4 GPU-h and 4 trials left |
-| 8 | Proposing → Authorizing (3) | **Policy, turn 2:** replicate t1 with seed 11 | Proposal 2 of 10 recorded |
-
-:::
+@fig-controller-trace starts with the ordinary trial selected. Step through its eight transitions, checkpoints 1 to 8. Each stage names the row that fired and highlights what changed in the controller record, external state, and policy context. Run `python -m labs.controller --scenario ordinary` to reproduce them.
 
 The policy acted twice in eight transitions, once for each trial it proposed. Every other transition was fired by the gate, the scheduler, the evaluator, or the controller's own rule. The replication proposal follows Block 01's reasoning: a gain of 0.009 on one seed is worth checking before more compute goes into its neighborhood.
 
