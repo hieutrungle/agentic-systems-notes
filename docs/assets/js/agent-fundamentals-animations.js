@@ -456,7 +456,7 @@ function mountDesignComparison(root) {
   render();
   narration.hidden = false;
   controls.hidden = false;
-  reserveSpace(root, "[data-narration], [data-status]", (measure) => {
+  reserveSpace(root, ".agent-design-steps, [data-narration], [data-status]", (measure) => {
     const kept = index;
     for (index = 0; index <= last; index += 1) {
       render();

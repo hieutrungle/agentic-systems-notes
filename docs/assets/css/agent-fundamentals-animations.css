@@ -756,9 +756,11 @@
   box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--bs-body-color);
 }
 
+/* Mark the current outcome without changing font metrics, so no line rewraps
+   and the figure keeps its height from step to step. */
 .agent-designs .agent-design-outcome.is-current {
   color: var(--bs-body-color);
-  font-weight: 600;
+  text-shadow: 0.4px 0 0 currentColor;
 }
 
 @media (prefers-reduced-motion: reduce) {
