@@ -238,7 +238,8 @@ ROWS: tuple[Row, ...] = (
         "charge the cost, keep or discard, close the trial"),
     Row(12, SEARCH, ("cancel", "deadline"), lambda z, e: True,
         lambda z, e: replace(z, stop_reason=e.kind, proposal=None), "stopped",
-        "none", "record the hard stop, freeze the incumbent, request cancellation of any pending job"),
+        "none", "record the hard stop, freeze the incumbent, request cancellation of any pending job, "
+        "and request the holdout score if no trial is pending"),
     Row(13, ("stopped",), ("holdout scored",), lambda z, e: z.pending is None and z.holdout_score is None,
         lambda z, e: replace(z, holdout_score=e.data["score"]), "done",
         "no trial is pending and no holdout score is recorded", "record the final holdout score"),
@@ -249,12 +250,13 @@ ROWS: tuple[Row, ...] = (
     Row(15, RECOVERABLE, ("timeout", "recovered"),
         lambda z, e: z.pending is not None and z.pending.recoveries >= RECOVERY_ATTEMPTS,
         lambda z, e: close_trial(z, z.pending.estimate), "ready",
-        "no recovery attempt remains", "charge the full reservation, request cancellation, close the trial unresolved"),
+        "a trial is pending and no recovery attempt remains",
+        "charge the full reservation, request cancellation, close the trial unresolved"),
     Row(16, ("reconciling",), ("score found", "score"), pending_score, decide, "ready",
         "the score is for the pending trial from the protocol's evaluator", "apply row 11's update"),
     Row(17, ("reconciling",), ("job done, unscored",),
         lambda z, e: matches_pending(z, e) and z.pending.score_attempts < SCORE_ATTEMPTS,
-        request_score, "scoring", "a scoring request remains", "request the score under the same scoring ID"),
+        request_score, "scoring", "a scoring request remains", "request the score under the trial's scoring ID"),
     Row(18, ("reconciling",), ("job done, unscored",),
         lambda z, e: matches_pending(z, e) and z.pending.score_attempts >= SCORE_ATTEMPTS,
         lambda z, e: close_trial(z, e.data["cost"]), "ready",
@@ -276,10 +278,10 @@ ROWS: tuple[Row, ...] = (
     Row(23, ("stopped",), ("job done", "job failed", "score"),
         lambda z, e: matches_pending(z, e) and (e.kind != "score" or e.data.get("trial") == z.pending.trial),
         stopped_close, "=", "the report is for the pending trial",
-        "charge the reported or known cost and close the trial without promotion"),
+        "charge the reported or known cost, close the trial without promotion, then request the holdout score"),
     Row(23, ("stopped",), ("timeout",), lambda z, e: z.pending is not None,
         lambda z, e: close_trial(z, z.pending.estimate), "=", "a trial is still pending",
-        "charge the full reservation and close the trial without promotion"),
+        "charge the full reservation, close the trial without promotion, then request the holdout score"),
 )
 
 

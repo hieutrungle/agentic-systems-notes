@@ -19,13 +19,37 @@ The short answer to the opening question: make a transition explicit when its le
 [Block 01](01-agent-fundamentals.qmd) gave AutoResearch its protocol and an owner for every decision in its loop. This block builds the next piece: the controller that runs that loop, written as an explicit transition table with checkpoints and a defined response to lost replies, restarts, and hard stops. Later blocks attach typed tools, a durable ledger, planning, and sub-agents to this controller. The [case study](../case-studies/autoresearch.qmd#building-autoresearch-block-by-block) lists what each block adds.
 :::
 
-The lesson starts with why a loop stops being enough and who produces each event (§1–2). It builds the controller and formalizes it (§3–5), then traces an ordinary trial and a lost reply through it (§6–8). It returns to implementation choices, failure modes, and production concerns (§9–11). It then applies the design to the real AutoResearch loop, where a coding agent edits the training script (§12), and closes with what AutoResearch now has (§13) and a conclusion (§14).
+The lesson starts with why a loop stops being enough and who produces each event (§1–2). It builds the controller and formalizes it (§3–5), then traces an ordinary trial, a lost reply, and a hard stop through it (§6–8). It returns to implementation choices, failure modes, and production concerns (§9–11). It then applies the design to the real AutoResearch loop, where a coding agent edits the training script (§12), and closes with what AutoResearch now has (§13) and a conclusion (§14).
 
 <script type="module" src="../assets/js/agent-loop-animations.js"></script>
 
 <details class="agent-lesson-toc" hidden>
 <summary>On this page</summary>
 </details>
+
+## The controller at a glance
+
+::: {#fig-controller-overview}
+
+```{=html}
+
+{{< include _figures/controller-overview.html >}}
+
+```
+
+The AutoResearch controller in one picture. Select a mode or a group to read what happens there, or select an event source to light the edges it can fire.
+
+:::
+
+Read @fig-controller-overview from **Ready** down the center, then select each event source.
+
+- **The policy chooses two edges.** Select **Policy**. Only the exits from Proposing light up: its two choices, propose a trial or ask to stop, and the invalid-output edge its decoder reports. Nothing the policy writes can authorize, finish, score, or promote a trial.
+- **The runtime fires the rest.** Select **Gate**, **Scheduler**, and **Evaluator** in turn. Each owns a short stretch of the cycle, and only the evaluator's score can change the incumbent.
+- **Every return path enters Ready.** Ready checks the limits before every policy turn, so no path reaches the policy without passing the stop rule.
+- **A missing reply has its own mode.** A timeout or a restart while a trial is in flight leads to **Reconciling**, which looks up what happened before it decides anything.
+- **Stopping is one way.** Nothing leaves **Stopped** except the holdout score, which ends the run in **Done**.
+
+That is the lesson in one sentence: write the loop as named modes and rows, so that the runtime decides what is legal next, and leave the policy only the choices where its judgment pays. The rest of the lesson builds the rows one at a time (@fig-controller-states), runs trials through them (@fig-controller-trace), and applies them to the real AutoResearch loop (@fig-controller-upstream).
 
 ## Learning objectives
 
@@ -51,15 +75,16 @@ An explicit controller answers four questions that a loop leaves implicit.
 
 ### Terms used in this lesson
 
-- **Mode.** The discrete control state of the controller, such as `Ready` or `Scoring`. Statecharts and UML call it the state.
+- **Mode.** The discrete control state of the controller, such as `Ready` or `Scoring`. Statecharts and UML call it the state. This controller has nine: Ready, Proposing, Authorizing, Dispatching, Running, Scoring, Reconciling, Stopped, and Done.
 - **Ledger.** The variables that guards read and updates write: the incumbent and its score, compute spent and reserved, counters, the pending trial and its IDs, the IDs of closed trials, the last rejection reason, and any stop reason.
 - **Controller record.** The mode together with the ledger. Block 01 called this the runtime state $z_t$.
 - **Event.** Something that arrives at the controller, such as a policy reply, a gate verdict, a scheduler acknowledgement, a score, a timeout, a cancellation, a restart, or the controller's own limit check.
 - **Guard.** A predicate over the ledger and the event. A transition can fire only when its guard is true.
 - **Update.** The change a transition makes to the ledger.
-- **Transition.** A rule of the form (mode, event, guard) → (update, next mode). A transition table lists one rule per row.
+- **Transition.** A rule of the form (mode, event, guard) → (update, next mode). A transition table lists one rule per row. Two numbered rows here group a pair of closely related rules: row 20 (resume or resend) and row 23 (a late report or a timeout after a stop).
 - **Terminal mode.** A mode with no outgoing transitions. Here it is `Done`.
 - **Checkpoint.** A durable copy of the controller record, committed at a transition boundary and numbered in sequence.
+- **Process host.** The supervisor that runs the controller process, outlives it, and delivers a *recovered* event when it restarts the controller.
 - **Operation ID and scoring ID.** Keys the controller creates and sends with a request. The scheduler and evaluator use them to recognize a repeated request and to find its result later.
 
 This vocabulary describes an extended finite-state machine: a finite set of modes plus variables that guards can test. Harel's statecharts add hierarchy, so a group of modes can share one outgoing transition [@harel1987statecharts]. The controller below has two groups. **Search** contains every mode except `Stopped` and `Done`. **Trial in flight** contains `Dispatching`, `Running`, and `Scoring`, the modes that wait on the scheduler or evaluator.
@@ -67,6 +92,8 @@ This vocabulary describes an extended finite-state machine: a finite set of mode
 ## 2. Who produces each event
 
 The controller reacts to events from several sources. The sources differ in a way that matters for design: the runtime can refuse some events and must absorb others.
+
+::: {.table-responsive tabindex="0" role="region" aria-label="Event sources and whether the runtime can refuse them"}
 
 | Source | Events | Can the runtime refuse it? |
 |---|------|----|
@@ -77,11 +104,13 @@ The controller reacts to events from several sources. The sources differ in a wa
 | Clock, operator, and process host | Timeout, deadline, cancel, recovered after a restart | No. |
 | Controller | Limits checked | It is the runtime's own rule. |
 
-Two consequences follow. A policy reply can arrive at any time, but it takes effect only in one mode, and only for the turn it answers. The runtime also needs a defined response to every event it cannot refuse, in every mode where that event can arrive. A late score does not wait for a convenient moment.
+:::
+
+Select a source in @fig-controller-overview to see the edges it fires. Two consequences follow. A policy reply can arrive at any time, but it takes effect only in one mode, and only for the turn it answers. The runtime also needs a defined response to every event it cannot refuse, in every mode where that event can arrive. A late score does not wait for a convenient moment.
 
 ## 3. The worked controller
 
-The controller below runs the Block 01 search one trial at a time. The numbers are schematic and carry over from the Block 01 example. The [controller lab](../labs/index.qmd#the-controller-as-a-transition-table) implements the same rows, prints each row's number, and reproduces every value in the traces.
+The controller below runs the Block 01 search one trial at a time. The numbers are schematic and carry over from the Block 01 example. The [controller lab](../labs/index.qmd#the-controller-as-a-transition-table) implements the same rows, prints each row's number, and reproduces every value in the traces. The figures below are generated from it with `python docs/assets/diagrams/controller_figures.py`.
 
 ::: {.callout-note}
 ## Protocol for the worked run
@@ -101,35 +130,35 @@ The controller below runs the Block 01 search one trial at a time. The numbers a
 
 ```
 
-The AutoResearch controller and its transition rows 1–13. Select a mode to list the rows that leave it, then a row to read its event, guard, and update. The policy chooses only the two edges leaving Proposing.
+Rows 1–13 of the controller, added in the order a run meets them. Each step shows one row: its mode, event, guard, update, and next mode.
 
 :::
 
-Read @fig-controller-states from **Ready** down the center. The main cycle passes through Proposing and Authorizing, then the three modes of a trial in flight, and returns to Ready along the line on the right. Each edge carries the number of its row. Five properties of the design are visible in the diagram.
+Step through @fig-controller-states. Steps 2–14 add one row each, in the order a run meets them, so row 7 comes before row 6. Step 15 shows where the policy chooses. Five properties of the design follow from the finished diagram.
 
-- **The policy owns two edges.** Both leave Proposing. The policy can propose a trial with its arguments (row 3) or propose stopping (row 4). Every other edge fires on an event from the gate, the scheduler, the evaluator, the clock, the operator, or the controller itself.
-- **Every return path enters Ready.** A closed trial, a rejected request, an invalid reply, a resolved reconciliation, and the policy's stop proposal all return there. Ready is the only mode that starts a policy turn, so the stop rule runs before every turn.
-- **A stop proposal is a request.** Row 4 returns to Ready, where row 2 records the stop and moves the run to Stopped. The policy can ask to stop early. It cannot keep the run going past a limit.
-- **Groups carry shared transitions.** A cancellation or deadline anywhere in Search leads to Stopped (row 12). A timeout or a restart in any trial-in-flight mode leads to Reconciling, which §7 develops.
-- **Stopped only leads to Done.** No edge leaves Stopped toward a new trial. The holdout score moves the run to Done once no trial is pending (row 13).
+- **The policy owns two edges.** Both leave Proposing. The policy can propose a trial with its arguments (row 3, step 4) or propose stopping (row 4, step 5). Every other edge fires on an event from the gate, the scheduler, the evaluator, the clock, the operator, or the controller itself (step 15).
+- **Every return path enters Ready.** A closed trial, a rejected request, an invalid reply, and the policy's stop proposal all return there. Ready is the only mode that starts a policy turn, so the stop rule runs before every turn.
+- **A stop proposal is a request.** Row 4 returns to Ready, where row 2 records the stop and moves the run to Stopped (step 5, then step 3). The policy can ask to stop early. It cannot keep the run going past a limit.
+- **Groups carry shared transitions.** A cancellation or deadline anywhere in Search leads to Stopped (row 12, step 13). A timeout or a restart in any trial-in-flight mode leads to Reconciling, which §7 develops.
+- **Stopped only leads to Done.** No edge leaves Stopped toward a new trial. The holdout score moves the run to Done once no trial is pending (row 13, step 14).
 
 ### The transition table
 
-The diagram and its rows are the specification. Each row names a current mode, an event and its source, a guard, an update, and a next mode. Select **Authorizing** in @fig-controller-states, then row 7, to read the row that commits the approved request. Rows 14–23, which handle timeouts, restarts, and late replies, come with the second trace in [§7](#trace-2-a-lost-score-reply).
+The rows in @fig-controller-states are the specification. Each names a current mode, an event and its source, a guard, an update, and a next mode. Rows 14–23, which handle timeouts, restarts, and late replies, arrive with the traces in §6 and §7.
 
-*Closing a trial* means three things happen in one update: the trial's cost is charged, its reservation is released, and its ID moves from the pending slot to the set of closed trials. Rows 10 and 11 close trials in the main cycle.
+*Closing a trial* means three things happen in one update: the trial's cost is charged, its reservation is released, and its ID moves from the pending slot to the set of closed trials. Rows 10 and 11 close trials in the main cycle (steps 11 and 12).
 
-**What makes a transition legal.** A row must match the current mode and the event, and its guard must hold. When no row matches, the controller logs the event and changes nothing. Rows with the same mode and event have mutually exclusive guards, as rows 1 and 2 under **Ready** do, so at most one row can fire.
+**What makes a transition legal.** A row must match the current mode and the event, and its guard must hold. When no row matches, the controller logs the event and changes nothing. Rows with the same mode and event have mutually exclusive guards, as rows 1 and 2 under **Ready** do (steps 2 and 3), so at most one row can fire.
 
-**Where the policy chooses.** Select **Proposing**. The policy's reply selects among rows 3, 4, and 5. Rows 3 and 4 are its intended choices, and row 5 records a reply the decoder could not use. The turn guard means a stale reply from an earlier turn matches no row. The policy cannot produce *allowed*, *job done*, or *score*. It therefore cannot authorize its own request, declare a job finished, or promote a candidate. If the model writes "the job succeeded, promote it," that text is content inside a proposal. No row lets a policy event change the incumbent.
+**Where the policy chooses.** The policy's reply selects among rows 3, 4, and 5 (steps 4–6). Rows 3 and 4 are its intended choices, and row 5 records a reply the decoder could not use. The turn guard means a stale reply from an earlier turn matches no row. The policy cannot produce *allowed*, *job done*, or *score*. It therefore cannot authorize its own request, declare a job finished, or promote a candidate. If the model writes "the job succeeded, promote it," that text is content inside a proposal. No row lets a policy event change the incumbent.
 
-**What forces a stop.** Row 2 applies the trial cap, proposal cap, and compute limit every time the run returns to Ready. Row 12 applies a cancellation or deadline at any moment. The policy can request a stop through row 4. It cannot prevent one.
+**What forces a stop.** Row 2 applies the trial cap, proposal cap, and compute limit every time the run returns to Ready (step 3). Row 12 applies a cancellation or deadline at any moment (step 13). The policy can request a stop through row 4. It cannot prevent one.
 
-**Why row 7 commits before sending.** Once the request leaves the process, the scheduler may start the job even if the controller never hears back. The controller therefore records the trial, its operation ID, the approved arguments, and the reservation before it sends anything. A crash after the commit leaves a record that the request *may* have been sent, together with everything needed to ask about it or resend it. A crash before the commit leaves no trace, and nothing was sent.
+**Why row 7 commits before sending.** Step 7 shows the order. Once the request leaves the process, the scheduler may start the job even if the controller never hears back. The controller therefore records the trial, its operation ID, the approved arguments, and the reservation before it sends anything. A crash after the commit leaves a record that the request *may* have been sent, together with everything needed to ask about it or resend it. A crash before the commit leaves no trace, and nothing was sent.
 
 ## 4. Formalizing the controller
 
-Index events by $n$. Write the controller record after $n$ events as $z_n=(q_n,\ell_n)$, where $q_n$ is the mode and $\ell_n$ is the ledger, and write $\sigma_n$ for the $n$-th event. Each row $r$ has a set of modes $Q_r$, a set of event types $K_r$, a guard $G_r$, a ledger update $f_r$, and a next mode $q'_r$. Row $r$ is enabled when the mode and event type match and the guard holds:
+Index events by $n$. Write the controller record after $n$ events as $z_n=(q_n,\ell_n)$, where $q_n$ is the mode and $\ell_n$ is the ledger, and write $\sigma_n$ for the $n$-th event. Each rule $r$ has a set of modes $Q_r$, a set of event types $K_r$, a guard $G_r$, a ledger update $f_r$, and a next mode $q'_r$, where $q'_r$ may be "unchanged" (rows 22 and 23). Rows 20 and 23 each hold two rules. Write $\kappa(\sigma)$ for the type of event $\sigma$. Rule $r$ is enabled when the mode and event type match and the guard holds:
 
 $$
 (q_{n},\ell_{n}) = \bigl(q'_r,\; f_r(\ell_{n-1},\sigma_n)\bigr)
@@ -180,23 +209,23 @@ The search ends at Stopped. The run ends at Done when the holdout score arrives.
 
 ```
 
-Step through two runs of trial t1. Each stage shows one transition and its effect on the controller record, external state, and policy context.
+Three runs of trial t1. Each step shows the row that fired, where the run is, and what changed in the controller record, external state, and policy context.
 
 :::
 
-@fig-controller-trace starts with the ordinary trial selected. Step through its eight transitions, checkpoints 1 to 8. Each stage names the row that fired and highlights what changed in the controller record, external state, and policy context. Run `python -m labs.controller --scenario ordinary` to reproduce them.
+@fig-controller-trace starts with **Ordinary trial**. Its first step starts in Ready, and the next eight each fire one row, checkpoints 1 to 8. The diagram marks the row that fired and the rows already taken, and the panels mark the fields that changed. Run `python -m labs.controller --scenario ordinary` to reproduce every value.
 
-The policy acted twice in eight transitions, once for each trial it proposed. Every other transition was fired by the gate, the scheduler, the evaluator, or the controller's own rule. The replication proposal follows Block 01's reasoning: a gain of 0.009 on one seed is worth checking before more compute goes into its neighborhood.
+The policy acted twice in eight transitions, at steps 3 and 9, once for each trial it proposed. Every other transition was fired by the gate, the scheduler, the evaluator, or the controller's own rule. The replication proposal follows Block 01's reasoning: a gain of 0.009 on one seed is worth checking before more compute goes into its neighborhood.
 
 **What each checkpoint proves.** A checkpoint is evidence about the controller, not about the world.
 
-- **Checkpoint 3** proves that the gate allowed t1 with the stored arguments, that 0.7 GPU-h is reserved, and that the controller may have sent `t1-submit`. It does not prove that the scheduler received the request. A restart from checkpoint 3 must ask the scheduler about `t1-submit` before sending anything, and it has the stored request if a resend is needed.
-- **Checkpoint 4** proves that the scheduler acknowledged job #42. It does not prove that the job is still running.
-- **Checkpoint 6** proves that t1's outcome was applied exactly once. The incumbent is t1 at 0.851, 1.4 GPU-h is unspent, one of five trials is used, and t1 is closed. A restart from checkpoint 6 rebuilds the next context from this record. The earlier prompt is not needed.
+- **Checkpoint 3** (step 4) proves that the gate allowed t1 with the stored arguments, that 0.7 GPU-h is reserved, and that the controller may have sent `t1-submit`. It does not prove that the scheduler received the request. A restart from checkpoint 3 must ask the scheduler about `t1-submit` before sending anything, and it has the stored request if a resend is needed.
+- **Checkpoint 4** (step 5) proves that the scheduler acknowledged job #42. It does not prove that the job is still running.
+- **Checkpoint 6** (step 7) proves that t1's outcome was applied exactly once. The incumbent is t1 at 0.851, 1.4 GPU-h is unspent, one of five trials is used, and t1 is closed. A restart from checkpoint 6 rebuilds the next context from this record. The earlier prompt is not needed.
 
 ## 7. Trace 2: a lost score reply {#trace-2-a-lost-score-reply}
 
-Select **Lost score reply** in @fig-controller-trace. The run is identical through checkpoint 5. The evaluator then stores t1 = 0.851, but its reply never reaches the controller. After the protocol's scoring timeout, schematically 10 minutes, the clock fires a timeout.
+Select **Lost score reply** in @fig-controller-trace. The run is identical through checkpoint 5 (step 6). The evaluator then stores t1 = 0.851, but its reply never reaches the controller. After the protocol's scoring timeout, schematically 10 minutes, the clock fires a timeout.
 
 **What the controller knows.** Job #42 finished at a cost of 0.6 GPU-h, and the controller requested a score under `t1-score`. It does not know whether a score exists. Three tempting moves are wrong.
 
@@ -204,23 +233,21 @@ Select **Lost score reply** in @fig-controller-trace. The run is identical throu
 - Sending a fresh scoring request under a new ID lets the evaluator compute and store a second score for the same trial. With nondeterministic evaluation, the two scores can differ, and nothing says which one counts.
 - Proposing the next trial while t1 is unresolved would break single flight. The policy would also choose trial 2 without t1's result, which may change what is worth running.
 
-Rows 14–23 handle the ambiguity. @fig-controller-recovery shows them on the same diagram, with the main-cycle rows faded. Row 14 moves the run into Reconciling, keeps the reservation, and issues no trial. Reconciling looks up the stored score by its scoring ID and the job by its operation ID, using the IDs committed at checkpoints 3 and 5. Select **Reconciling** to step through its seven rows. Each lookup result has exactly one row.
+Rows 14–23 handle the ambiguity, and each appears in the trace at the step where it fires. Step 7 adds row 14: it moves the run into Reconciling, keeps the reservation, and issues no trial. Reconciling looks up the stored score by its scoring ID and the job by its operation ID, using the IDs committed at checkpoints 3 and 5. At most one row fires for each lookup result. A result that matches no row is logged, and the next timeout spends another recovery attempt.
 
-::: {#fig-controller-recovery}
+In the trace, the lookup finds 0.851 under `t1-score` from evaluator `v1` (step 8). Row 16 applies the same update as row 11, and checkpoint 7 records t1 as the incumbent with 1.4 GPU-h unspent. The original reply then arrives late (step 9). t1 is no longer pending, so only row 22 matches. It logs the reply as checkpoint 8 and changes no ledger field. From there the run reaches the same ledger as the ordinary trace, two checkpoints later (row 14 at checkpoint 6 and row 22 at checkpoint 8), and the policy sees the same evidence in its next context (steps 10 and 11). The lost reply cost a lookup, not a trial.
 
-```{=html}
+**The invariant at work.** *Close once* is enforced by the pending-trial guards on rows 10, 11, 15, 16, 18, 19, and 23, together with emptying the pending slot when a trial closes. The late reply cannot match row 11 or row 16, because no trial is pending. Row 22 only makes the log-and-ignore decision explicit. Compare a loop callback that charges every score it receives, keyed only by trial ID. That callback would charge 0.6 GPU-h a second time, leaving 0.8 GPU-h instead of 1.4, and record a second decision for t1. Row 23 applies the same idea after a hard stop: late evidence closes the pending trial and pays for it, and the frozen selection stays frozen.
 
-{{< include _figures/controller-recovery.html >}}
+**A hard stop with a trial in flight.** Select **Cancel mid-run**. An operator cancels while job #42 is running, and row 12 moves the run to Stopped (step 6). The incumbent is frozen, but t1 is still pending, so the run cannot end yet. The scheduler then reports the cancelled job at a cost of 0.4 GPU-h (step 7). Row 23 charges it, releases the reservation, closes t1 without promotion, and requests the holdout score. 1.6 GPU-h stay unspent, and no row can spend them. The holdout score of the frozen selection, still the baseline, moves the run to Done (step 8). After a hard stop with no trial pending, row 12 requests the holdout score itself. Run `python -m labs.controller --scenario cancel` to reproduce it. All values are schematic.
 
-```
+**The recovery rows no trace reaches.** The traces fire rows 14, 16, 22, and 23. The other recovery rows cover the remaining lookup results and restarts.
 
-Recovery rows 14–23: timeouts, restarts, and late replies. Select a mode or group to list its recovery rows, then a row to read it.
-
-:::
-
-In the trace, the lookup finds 0.851 under `t1-score` from evaluator `v1`. Row 16, under **Reconciling**, applies the same update as row 11, and checkpoint 7 records t1 as the incumbent with 1.4 GPU-h unspent. The original reply then arrives late. t1 is no longer pending, so only row 22 matches (select **Search**), and the controller logs the reply and changes nothing. From there the run reaches the same ledger as the ordinary trace, two checkpoints later, and the policy sees the same evidence in its next context. The lost reply cost a lookup, not a trial.
-
-**The invariant at work.** *Close once* is enforced by the pending-trial guards on rows 10, 11, 16, 18, 19, and 23, together with emptying the pending slot when a trial closes. The late reply cannot match row 11 or row 16, because no trial is pending. Row 22 only makes the log-and-ignore decision explicit. Compare a loop callback that charges every score it receives, keyed only by trial ID. That callback would charge 0.6 GPU-h a second time, leaving 0.8 GPU-h instead of 1.4, and record a second decision for t1. Row 23 applies the same idea after a hard stop: late evidence closes the pending trial and pays for it, and the frozen selection stays frozen.
+- **Row 15.** A timeout or restart in Dispatching, Running, Scoring, or Reconciling when a trial is pending and no recovery attempt remains. Charge the full reservation, request cancellation, and close the trial unresolved. The scheduler caps a trial at its reservation, so the full reservation bounds what the trial spent.
+- **Rows 17 and 18.** The lookup finds the job done but no stored score. If a scoring request remains, row 17 requests the score under the trial's scoring ID and returns to Scoring, where row 11 decides. Otherwise row 18 charges the cost and closes the trial unresolved.
+- **Row 19.** The lookup finds the job failed. Apply row 10's update.
+- **Row 20.** The scheduler reports the job still running, and the run resumes waiting in Running. If no job ID is recorded and the scheduler has no job for the operation ID, the controller resends the stored request under the same operation ID and returns to Dispatching.
+- **Row 21.** A restart in Proposing. Count the lost model call as a proposal and return to Ready.
 
 **A crash is the same problem.** Suppose the process dies while in Scoring. On restart, the process host delivers a *recovered* event, and the last checkpoint says Scoring with request `t1-score`. The restarted controller cannot tell whether a reply arrived and was lost with the old process, so row 14 moves it to Reconciling and the same rows apply. A restart in Proposing loses the model call, and row 21 counts it as a proposal. Authorizing needs no restart row because the gate is deterministic code that runs again on the recorded proposal. Run `python -m labs.controller --scenario restart` to see the crash version of the trace.
 
@@ -228,15 +255,13 @@ In the trace, the lookup finds 0.851 under `t1-score` from evaluator `v1`. Row 1
 
 ## 8. Controller record, external state, and context
 
-The traces keep three kinds of state apart. Block 01 introduced them as $z_t$, $x_t$, and $c_t$. The examples below come from checkpoint 5 of the lost-score trace, just before the timeout.
+The traces keep three kinds of state apart. Block 01 introduced them as $z_t$, $x_t$, and $c_t$. Step 7 of the lost-score trace in @fig-controller-trace, just after the timeout, shows all three.
 
-| Layer | Owner | Example at checkpoint 5 | Authoritative for | After a restart |
-|---|---|-----|----|----|
-| Controller record $z$ | The controller, its only writer | Mode Scoring, pending t1 with job #42 and request `t1-score`, incumbent baseline at 0.842, 2.0 GPU-h unspent with 0.7 reserved | Which transitions are legal and what has been decided | Restored from the last checkpoint |
-| External state $x$ | Scheduler, artifact store, evaluator store | Job #42 complete, trained weights stored, score t1 = 0.851 stored | What actually ran and what was measured | Persists in those systems. The controller sees it only through events and lookups. |
-| Policy context $c$ | Built by $\phi$ for one policy turn | The context of turn 1, built at checkpoint 1 from the baseline record and now stale | Nothing. It is an input to one decision. | Rebuilt from $z$ at the next turn |
+- **Controller record $z$.** The controller is its only writer. At step 7 it says Reconciling, pending t1 with job #42 and request `t1-score`, incumbent baseline at 0.842, and 0.7 GPU-h reserved. It is authoritative for which transitions are legal and what has been decided. A restart restores it from the last checkpoint.
+- **External state $x$.** The scheduler, artifact store, and evaluator store own it. At step 7 the evaluator store already holds t1 = 0.851. It is authoritative for what actually ran and what was measured, and it persists in those systems through a restart. The controller sees it only through events and lookups.
+- **Policy context $c$.** $\phi$ builds it for one policy turn. At step 7 it is still the context of turn 1, built at checkpoint 1 and now stale. It is authoritative for nothing. The next turn rebuilds it from $z$.
 
-At checkpoint 5 the external store already holds t1 = 0.851, while the controller record still names the baseline as incumbent. The controller's entry "Scoring, job #42" is a belief about external state, and the scheduler and evaluator remain the sources of truth. The context can omit fields that guards need, such as operation IDs and reservations. It can also include information that no guard reads, such as the policy's hypothesis about why t1 improved. [Context, State, and Memory](04-context-state-memory.qmd) develops what enters the context and what must persist.
+At step 7 the external store holds t1 = 0.851, while the controller record still names the baseline as incumbent. The controller's entry "pending t1, job #42, score unknown" is a belief about external state, and the scheduler and evaluator remain the sources of truth. The context can omit fields that guards need, such as operation IDs and reservations. It can also include information that no guard reads, such as the policy's hypothesis about why t1 improved. [Context, State, and Memory](04-context-state-memory.qmd) develops what enters the context and what must persist.
 
 ## 9. Loop, table, or graph engine
 
@@ -290,21 +315,17 @@ The 5-minute budget and the 10-minute limit are upstream parameters. The instruc
 
 ### Step 1: Read the implicit state machine
 
-Each instruction corresponds to a mode, a guard, or an update from this lesson. The table maps them and records what enforces each one upstream.
+@fig-controller-upstream follows one upstream experiment in the order it runs. Each instruction in `program.md` corresponds to a mode, a guard, or an update from this lesson. Step 1 places every rule in the agent's lane, with what enforces it and where its state lives.
 
-::: {.table-responsive tabindex="0" role="region" aria-label="Upstream instructions mapped to controller concepts"}
+::: {#fig-controller-upstream}
 
-| Upstream instruction | Concept in this lesson | Enforced by | Where the state lives |
-|------|------|-----|------|
-| Edit `train.py`, then commit | A proposal, then the commit before dispatch (rows 3 and 7) | The agent | Git branch |
-| Edit only `train.py`, add no packages | Gate guard (row 7) | The agent | The diff |
-| Stop training after 5 minutes | Per-trial compute cap | A `break` in `train.py` | Code the agent edits |
-| Kill a run after 10 minutes | A cap whose breach fails the trial (row 10) | The agent | The agent's shell session |
-| Read `val_bpb`, and treat an empty result as a crash | Score and job-failed events (rows 10 and 11) | The agent, reading text that `train.py` prints | `run.log` |
-| Give up after a few fix attempts | Attempt counter | The agent's judgment | The agent's context |
-| Append to `results.tsv` | Ledger update when a trial closes | The agent | A file outside git |
-| Keep if lower, otherwise reset | Promotion rule (row 11) | The agent | Branch head |
-| Never stop | Stop rule (rows 2 and 12) | A person who interrupts | Nowhere |
+```{=html}
+
+{{< include _figures/controller-upstream.html >}}
+
+```
+
+One upstream experiment, rule by rule. Each step moves a rule from the agent to what enforces it in the redesign, or shows a choice the agent keeps.
 
 :::
 
@@ -316,34 +337,22 @@ Three details of the code at that commit shape the redesign. First, the metric p
 
 Apply the rule from the start of the lesson. Make a transition explicit when its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. The limits below are schematic.
 
-- **Keep with the policy.** The code change itself, whether a crash looks fixable and what fix to try, and when to ask to stop because ideas have run out. These choices need judgment, and the gate can check that each option is legal.
-- **Move legality into the gate.** "Edit only `train.py`" and "add no packages" become guards on the diff, and the approval binds the diff's hash. The gate also checks that `prepare.py` and the lock file match pinned hashes. "A few attempts" becomes a guard: at most three fix attempts per idea. A fix is a complete diff against the incumbent, and the policy labels it with the idea it fixes. A policy could mislabel a fix as a new idea, so the trial cap is the bound that actually holds.
-- **Enforce the time budget outside the agent's code.** A **process host**, a supervisor that outlives the controller, launches each training run under a run ID and kills it at 7 minutes of wall-clock time: the 5-minute budget plus an allowance for startup and saving. That cap replaces the agent's 10-minute kill. A run that deletes the `break` can still train for up to the allowance. Strictly equal budgets need the timer in pinned code that calls the agent's training step.
-- **Move measurement out of code the agent writes.** `train.py` saves the trained weights. A pinned evaluator builds the candidate's model, takes its logits, and computes bits per byte in its own code. It first checks causality: changing later tokens must not change earlier positions' logits. Training runs in a sandbox where neither the validation shard nor the holdout is mounted. Model code still runs during scoring, so the holdout remains the backstop against a gamed metric.
-- **Make promotion a row.** Keep a candidate only if its `val_bpb` is strictly lower than the incumbent's. If a team values simplifications, it can add a second measured rule instead of a judgment call. One version keeps a candidate that deletes non-blank, non-comment lines from `train.py` and scores no worse than the best score so far plus a tolerance τ. τ must exceed the evaluator's measured noise. Comparing against the best score so far keeps repeated simplifications from drifting upward.
-- **Keep git and the results file behind the record.** The candidate commit lives on its own ref, not on the branch. The branch moves only when row 11 promotes, after the checkpoint, through an idempotent "set the branch to this commit" operation. `results.tsv` becomes a report regenerated from the ledger, one row per closed trial.
-- **Replace "never stop" with a stop rule.** Row 2 ends the search at 60 trials or 120 proposals, and row 12 ends it at an 8-hour deadline or a person's cancel. Killing the agent in the middle of a command can leave a commit that was neither kept nor reset. A cancel event leaves a record and a frozen incumbent.
-- **Add a holdout.** At this commit, `prepare.py` assigns every shard except one pinned validation shard to training. The holdout is set up once, by reserving a shard in `prepare.py` before its hash is pinned. The evaluator scores the frozen incumbent on it once, after the search stops.
+- **Keep with the policy.** The code change itself, whether a crash looks fixable and what fix to try, and when to ask to stop because ideas have run out (steps 2, 6, and 12). These choices need judgment, and the gate can check that each option is legal.
+- **Move legality into the gate.** "Edit only `train.py`" and "add no packages" become guards on the diff, and the approval binds the diff's hash (step 3). The gate also checks that `prepare.py` and the lock file match pinned hashes. "A few attempts" becomes a guard: at most three fix attempts per idea (step 6). A fix is a complete diff against the incumbent, and the policy labels it with the idea it fixes. A policy could mislabel a fix as a new idea, so the trial cap is the bound that actually holds.
+- **Enforce the time budget outside the agent's code** (step 5). A **process host**, a supervisor that outlives the controller, launches each training run under a run ID and kills it at 7 minutes of wall-clock time: the 5-minute budget plus an allowance for startup and saving. That cap replaces the agent's 10-minute kill. A run that deletes the `break` can still train for up to the allowance. Strictly equal budgets need the timer in pinned code that calls the agent's training step.
+- **Move measurement out of code the agent writes** (step 7). `train.py` saves the trained weights. A pinned evaluator builds the candidate's model, takes its logits, and computes bits per byte in its own code. It first checks causality: changing later tokens must not change earlier positions' logits. Training runs in a sandbox where neither the validation shard nor the holdout is mounted. Model code still runs during scoring, so the holdout remains the backstop against a gamed metric.
+- **Make promotion a row** (step 8). Keep a candidate only if its `val_bpb` is strictly lower than the incumbent's. If a team values simplifications, it can add a second measured rule instead of a judgment call. One version keeps a candidate that deletes non-blank, non-comment lines from `train.py` and scores no worse than the best score so far plus a tolerance τ. τ must exceed the evaluator's measured noise. Comparing against the best score so far keeps repeated simplifications from drifting upward.
+- **Keep git and the results file behind the record** (steps 4 and 9). The candidate commit lives on its own ref, not on the branch. The branch moves only when row 11 promotes, after the checkpoint, through an idempotent "set the branch to this commit" operation. `results.tsv` becomes a report regenerated from the ledger, one row per closed trial.
+- **Replace "never stop" with a stop rule** (step 10). Row 2 ends the search at 60 trials or 120 proposals, and row 12 ends it at an 8-hour deadline or a person's cancel. At about 8 minutes per trial, the 7-minute cap plus scoring, 60 trials fill the 8 hours, so neither limit sits idle. Killing the agent in the middle of a command can leave a commit that was neither kept nor reset. A cancel event leaves a record and a frozen incumbent.
+- **Add a holdout** (step 11). At this commit, `prepare.py` assigns every shard except one pinned validation shard to training. The holdout is set up once, by reserving a shard in `prepare.py` before its hash is pinned. The evaluator scores the frozen incumbent on it once, after the search stops.
 
 ### Step 3: Rewrite the rows that change
 
 Four terms carry the redesign. A **run ID** plays the role of the operation ID for one launch, and the process host refuses a second launch under the same ID. The **base commit** is the incumbent when the gate approves. The **candidate commit** is the base plus the approved diff. The **pinned evaluator** is the scoring code at a recorded hash, and it replaces evaluator `v1` in rows 11 and 16.
 
-@fig-controller-upstream shows the rows that change on the same diagram. Rows that keep their meaning are faded. Select **Authorizing**, then row 7, to see how the gate's checks and the checkpoint change. Each rewritten row ends with a note on what changed from @fig-controller-states.
+The cards in @fig-controller-upstream quote the rewritten rows: row 3 at step 2, row 7 at steps 3 and 4, row 10 at step 5, row 6 at step 6, row 9 at step 7, row 11 at step 8, and row 2 at step 10.
 
-::: {#fig-controller-upstream}
-
-```{=html}
-
-{{< include _figures/controller-upstream.html >}}
-
-```
-
-Controller rows rewritten for the upstream loop. Select a mode that is not faded, then a row, to compare it with @fig-controller-states.
-
-:::
-
-The other rows keep their meaning, with the process host in place of the scheduler, a run ID in place of the operation ID, and run slots in place of GPU-hours. A lookup reports a run as *done* only if it exited with status 0 and saved weights, so rows 16–17 inherit row 9's success guard. A run that fails the causality check gets a failed evaluation instead of a score, and the trial closes without promotion. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes. It detects a lost report from the process host, not a slow run.
+The other rows keep their meaning, with the process host in place of the scheduler, a run ID in place of the operation ID, and run slots in place of GPU-hours. A lookup reports a run as *done* only if it exited with status 0 and saved weights, so rows 16–17 inherit row 9's success guard. A run that fails the causality check gets a failed evaluation instead of a score. The redesign adds one row for it: in Scoring or Reconciling, a failed evaluation for the pending trial applies row 10's update and returns to Ready, so the trial closes without promotion. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes. It detects a lost report from the process host, not a slow run.
 
 Where the policy chooses is unchanged: rows 3 and 4, a patch or a request to stop. Everything else that upstream left to the agent now fires on an event from the gate, the process host, the evaluator, the clock, or the operator. That covers measurement, keeping or discarding, accounting for crashes, enforcing time limits, and stopping. The branch moves only after row 11 promotes a candidate, so it moves only on a score from the pinned evaluator.
 
@@ -357,7 +366,8 @@ With the explicit controller, the recovered event fires row 14, and Reconciling 
 
 - **Checkpoint says Dispatching, and the host has no run `t7-run`.** The crash came after row 7's checkpoint and before the launch reached the host. Row 20 asks the host to launch the same candidate commit under the same run ID. If the first launch did reach the host, the host refuses the duplicate.
 - **Checkpoint says Running, and the run is still training.** Row 20 resumes waiting. The 7-minute cap still applies.
-- **The run is done.** Row 17 requests the score under the trial's scoring ID, and row 16 or row 11 applies the promotion rule.
+- **The run is done and a score is stored.** Row 16 applies row 11's update.
+- **The run is done but unscored.** Row 17 requests the score under the trial's scoring ID, and row 11 decides when it arrives.
 - **The run failed, was killed, or saved no weights.** Row 19 applies row 10's update and closes the trial as a crash.
 
 If the host has lost a run it had accepted, no lookup row matches. Each timeout spends a recovery attempt, and row 15 closes the trial unresolved after the third.
@@ -374,19 +384,19 @@ Our engineering judgment is that upstream's prompt-level loop is the right first
 
 ## 13. AutoResearch after Block 02
 
-Compare Block 01's [top-level design](01-agent-fundamentals.qmd#fig-autoresearch-design) with @fig-controller-states. Each box of the loop became one or more modes, and each arrow became one or more rows with a guard. The policy's role did not grow. It still chooses the next trial or asks to stop. What grew is the runtime's precision about everything else.
+Compare Block 01's [top-level design](01-agent-fundamentals.qmd#fig-autoresearch-design) with @fig-controller-overview. Each box of the loop became one or more modes, and each arrow became one or more rows with a guard. The policy's role did not grow. It still chooses the next trial or asks to stop. What grew is the runtime's precision about everything else.
 
 ::: {.callout-tip}
 ## Built in Block 02, and next
 
-**Built in this block.** The controller: nine modes, 23 rows, five invariants, and a termination argument. `labs/controller.py` implements it, and its tests replay both traces, a restart, and a cancellation, and feed random event sequences while checking the invariants. §12 applies the same table to the upstream loop, where the policy's proposal is a patch to `train.py` and measurement moves into a pinned evaluator.
+**Built in this block.** The controller: nine modes, 23 rows, five invariants, and a termination argument. `labs/controller.py` implements it, and its tests replay all four scenarios (ordinary, lost score, restart, cancel), and feed random event sequences while checking the invariants. §12 applies the same table to the upstream loop, where the policy's proposal is a patch to `train.py` and measurement moves into a pinned evaluator.
 
 **Next.** [Tool Use](03-tool-use.qmd) specifies the operations behind rows 7–9 and 14–20: typed requests to edit training code in a sandbox and to submit, score, and look up trials, with validation, authorization, and the operation and scoring IDs that reconciliation relies on.
 :::
 
 ## 14. Conclusion
 
-The opening question asked when transitions should be explicit in the controller. Make a transition explicit where its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. In AutoResearch that covers almost every edge. The approval binds the exact arguments, row 7 commits before sending, reconciliation reads stored results by ID, and Ready runs the stop rule before every policy turn. The policy keeps the one decision that benefits from judgment: which trial to run next, and whether to ask to stop. Applied to the upstream loop, the same rule moves measurement, promotion, crash accounting, time limits, and the stop out of the agent's instructions and into rows. It leaves the agent the patch, the decision to try a fix, and a request to stop.
+@fig-controller-overview is this lesson in miniature. The opening question asked when transitions should be explicit in the controller. Make a transition explicit where its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. In AutoResearch that covers almost every edge. The approval binds the exact arguments, row 7 commits before sending, reconciliation reads stored results by ID, and Ready runs the stop rule before every policy turn. The policy keeps the one decision that benefits from judgment: which trial to run next, and whether to ask to stop. Applied to the upstream loop, the same rule moves measurement, promotion, crash accounting, time limits, and the stop out of the agent's instructions and into rows. It leaves the agent the patch, the decision to try a fix, and a request to stop.
 
 - **A loop repeats work. A transition table says what is legal next.**
 - **A checkpoint is evidence about the controller, not about the world.**

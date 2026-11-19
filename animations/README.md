@@ -14,3 +14,5 @@ Manim writes the preview to `media/videos/autoresearch_loop/480p15/AutoResearchL
 To update the clip embedded in the case study, copy the 720p render to `docs/assets/animations/autoresearch-loop.mp4` and review the text walkthrough alongside it.
 
 The [Block 01 figures](../docs/curriculum/01-agent-fundamentals.qmd#fig-agent-runtime) animate directly in the browser. Their SVG markup is under `docs/curriculum/_figures/`, with playback in `docs/assets/js/agent-fundamentals-animations.js`.
+
+The [Block 02 figures](../docs/curriculum/02-agent-loop-state-machines.qmd#fig-controller-overview) are generated from one data source. Run `python docs/assets/diagrams/controller_figures.py` from the repository root to rewrite the four includes under `docs/curriculum/_figures/`. The script runs `labs.controller` for every trace value and stops if an authored step disagrees with the lab. `tests/test_controller_figures.py` checks that the committed includes match the generator and the lab. Playback is in `docs/assets/js/agent-loop-animations.js`.

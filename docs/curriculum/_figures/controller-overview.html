@@ -1,0 +1,81 @@
+<div class="agent-animation cm-overview" data-cm-overview>
+  <p class="cm-hint" data-overview-hint hidden>Hover, focus, or tap a mode, a group, or an event source.</p>
+  <div class="cm-ov-sources" role="group" aria-label="Event sources">
+    <span class="cm-ov-sources-label" aria-hidden="true">Who fires the edges</span>
+    <button type="button" class="cm-source" aria-controls="ov-policy" data-rows="3 4 5" disabled>Policy</button>
+<button type="button" class="cm-source" aria-controls="ov-gate" data-rows="6 7" disabled>Gate</button>
+<button type="button" class="cm-source" aria-controls="ov-scheduler" data-rows="8 9 10 17 18 19 20 23" disabled>Scheduler</button>
+<button type="button" class="cm-source" aria-controls="ov-evaluator" data-rows="11 13 16 22" disabled>Evaluator</button>
+<button type="button" class="cm-source" aria-controls="ov-clock" data-rows="12 14 15 21" disabled>Clock, operator, host</button>
+<button type="button" class="cm-source" aria-controls="ov-controller" data-rows="1 2" disabled>Controller</button>
+  </div>
+  <div class="cm-ov-layout">
+    <div class="cm-ov-graph" role="group" aria-label="Controller modes and groups">
+      <p id="ov-desc" class="visually-hidden">Nine modes. Ready leads to Proposing, where the policy proposes a trial or asks to stop. A proposed trial goes to Authorizing, where the gate allows it into the Trial in flight group (Dispatching, Running, Scoring) or rejects it back to Ready. Every closed trial, rejection, invalid reply, and stop request returns to Ready along the right side. A timeout or restart in flight leads to Reconciling, which resumes the trial or resolves it back to Ready. From Ready, or on a cancel or deadline anywhere in Search, the run moves to Stopped, and the holdout score moves it to Done.</p>
+      <svg class="cm-svg" viewBox="0 0 320 416" role="img" aria-labelledby="ov-svg-title" aria-describedby="ov-desc">
+<title id="ov-svg-title">AutoResearch controller overview</title>
+<rect class="cm-group cm-group-search" x="46" y="62" width="268" height="350" rx="9"/>
+<rect class="cm-group cm-group-flight" x="84" y="206" width="172" height="146" rx="9"/>
+<g class="cm-edges">
+<g class="cm-edge" data-row="1"><path class="cm-line" d="M156 106L156 124"/><path class="cm-head" d="M156 124L152 116L160 116Z"/></g>
+<g class="cm-edge" data-row="2"><path class="cm-line" d="M156 78L156 44"/><path class="cm-head" d="M156 44L160 52L152 52Z"/></g>
+<g class="cm-edge is-policy" data-row="3"><path class="cm-line" d="M156 152L156 170"/><path class="cm-head" d="M156 170L152 162L160 162Z"/></g>
+<g class="cm-edge is-policy" data-row="4"><path class="cm-line" d="M212 138L282 138L282 99L213 99"/><path class="cm-head" d="M213 99L221 95L221 103Z"/></g>
+<g class="cm-edge" data-row="5"><path class="cm-line" d="M212 138L282 138L282 99L213 99"/><path class="cm-head" d="M213 99L221 95L221 103Z"/></g>
+<g class="cm-edge" data-row="6"><path class="cm-line" d="M212 184L300 184L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="7"><path class="cm-line" d="M156 198L156 220"/><path class="cm-head" d="M156 220L152 212L160 212Z"/></g>
+<g class="cm-edge" data-row="8"><path class="cm-line" d="M156 248L156 266"/><path class="cm-head" d="M156 266L152 258L160 258Z"/></g>
+<g class="cm-edge" data-row="9"><path class="cm-line" d="M156 294L156 312"/><path class="cm-head" d="M156 312L152 304L160 304Z"/></g>
+<g class="cm-edge" data-row="10"><path class="cm-line" d="M212 280L300 280L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="11"><path class="cm-line" d="M212 326L300 326L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge is-stop" data-row="12"><path class="cm-line" d="M306 62L306 30L213 30"/><path class="cm-head" d="M213 30L221 26L221 34Z"/></g>
+<g class="cm-edge" data-row="13"><path class="cm-line" d="M100 30L71 30"/><path class="cm-head" d="M71 30L79 26L79 34Z"/></g>
+<g class="cm-edge" data-row="14"><path class="cm-line" d="M200 352L200 372"/><path class="cm-head" d="M200 372L196 364L204 364Z"/></g>
+<g class="cm-edge" data-row="15"><path class="cm-line" d="M212 386L300 386L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="16"><path class="cm-line" d="M212 386L300 386L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="17"><path class="cm-line" d="M118 372L118 341"/><path class="cm-head" d="M118 341L122 349L114 349Z"/></g>
+<g class="cm-edge" data-row="18"><path class="cm-line" d="M212 386L300 386L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="19"><path class="cm-line" d="M212 386L300 386L300 86L213 86"/><path class="cm-head" d="M213 86L221 82L221 90Z"/></g>
+<g class="cm-edge" data-row="20"><path class="cm-line" d="M100 386L66 386L66 234L99 234"/><path class="cm-head" d="M99 234L91 238L91 230Z"/><path class="cm-line" d="M66 280L99 280"/><path class="cm-head" d="M99 280L91 284L91 276Z"/></g>
+<g class="cm-edge" data-row="21"><path class="cm-line" d="M212 138L282 138L282 99L213 99"/><path class="cm-head" d="M213 99L221 95L221 103Z"/></g>
+<g class="cm-edge is-loop" data-row="22"><path class="cm-line" d="M100 85L80 85L80 99L99 99"/><path class="cm-head" d="M99 99L91 103L91 95Z"/></g>
+<g class="cm-edge is-loop" data-row="23"><path class="cm-line" d="M140 16L140 4L172 4L172 15"/><path class="cm-head" d="M172 15L168 7L176 7Z"/></g>
+</g>
+</svg>
+      <button type="button" class="cm-ov-node" style="left: 31.25%; top: 18.75%; width: 35%; height: 6.731%" aria-controls="ov-ready" disabled>Ready</button>
+<button type="button" class="cm-ov-node is-policy" style="left: 31.25%; top: 29.81%; width: 35%; height: 6.731%" aria-controls="ov-proposing" disabled>Proposing</button>
+<button type="button" class="cm-ov-node is-gate" style="left: 31.25%; top: 40.87%; width: 35%; height: 6.731%" aria-controls="ov-authorizing" disabled>Authorizing</button>
+<button type="button" class="cm-ov-node" style="left: 31.25%; top: 52.88%; width: 35%; height: 6.731%" aria-controls="ov-dispatching" disabled>Dispatching</button>
+<button type="button" class="cm-ov-node" style="left: 31.25%; top: 63.94%; width: 35%; height: 6.731%" aria-controls="ov-running" disabled>Running</button>
+<button type="button" class="cm-ov-node" style="left: 31.25%; top: 75%; width: 35%; height: 6.731%" aria-controls="ov-scoring" disabled>Scoring</button>
+<button type="button" class="cm-ov-node" style="left: 31.25%; top: 89.42%; width: 35%; height: 6.731%" aria-controls="ov-reconciling" disabled>Reconciling</button>
+<button type="button" class="cm-ov-node" style="left: 31.25%; top: 3.846%; width: 35%; height: 6.731%" aria-controls="ov-stopped" disabled>Stopped</button>
+<button type="button" class="cm-ov-node is-terminal" style="left: 3.125%; top: 3.846%; width: 18.75%; height: 6.731%" aria-controls="ov-done" disabled>Done</button>
+<button type="button" class="cm-ov-group" style="left: 77.81%; top: 15.87%; width: 15.62%; height: 4.327%" aria-controls="ov-search" disabled>Search</button>
+<button type="button" class="cm-ov-group" style="left: 65.31%; top: 50%; width: 14.38%; height: 7.212%" aria-controls="ov-flight" disabled>Trial in flight</button>
+    </div>
+    <div class="cm-ov-info" data-overview-info>
+      <section id="ov-ready" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Ready</p><p>Between policy turns. The controller checks its limits here before every turn. If no stop is requested and every limit has room, it builds the policy's context and moves to Proposing. Otherwise it moves to Stopped. Every return path ends in Ready. The small loop logs and ignores a late reply for a trial that is already closed.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, steps 2–3</p></section>
+<section id="ov-policy" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Policy</p><p>Proposes a trial or asks to stop, only in Proposing and only for the current turn. Those are its two choices. Its decoder reports a reply it cannot use as invalid output, the third exit from Proposing, which returns to Ready.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> Yes. The gate or a guard can reject the request.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-gate" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Gate</p><p>Allows or rejects the proposed trial. An approval binds the exact arguments it checked.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> Not applicable. The gate is runtime code.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-scheduler" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Scheduler</p><p>Accepts, finishes, or fails a job, and answers lookups by operation ID or job ID.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> No. The job runs whether or not the controller still wants it.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-evaluator" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Evaluator</p><p>Returns a score, or a stored score on lookup. It also scores the holdout once at the end. Only a score can promote a candidate.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> No. A score can arrive late or twice.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-clock" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Clock, operator, host</p><p>Timeouts, the deadline, a cancellation, and the recovered event after a restart.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> No. The runtime must absorb these events.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-controller" data-overview-panel><p class="cm-ov-kind">Event source</p><p class="cm-ov-title">Controller</p><p>Checks the limits in Ready, then starts a policy turn or stops the search.</p><p class="cm-ov-meta"><b>Can the runtime refuse it?</b> It is the runtime's own rule.</p><p class="cm-ov-meta">Edges it fires are highlighted.</p></section>
+<section id="ov-proposing" data-overview-panel><p class="cm-ov-kind">Mode · the policy's turn</p><p class="cm-ov-title">Proposing</p><p>The policy proposes a trial with its arguments, or asks to stop. A reply the decoder cannot use, or one that misses its deadline, counts as invalid output. These are the only edges the policy chooses.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, steps 4–6</p></section>
+<section id="ov-authorizing" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Authorizing</p><p>The gate checks the proposed trial against the protocol. If it allows the trial, the controller records it and reserves compute before anything is sent. If it rejects the trial, the reason goes back to Ready.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, steps 7–8</p></section>
+<section id="ov-dispatching" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Dispatching</p><p>The approved request may have left the process. The controller waits for the scheduler to acknowledge the job.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, step 9</p></section>
+<section id="ov-running" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Running</p><p>The scheduler accepted the job. The controller waits for it to finish or fail.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, steps 10–11</p></section>
+<section id="ov-scoring" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Scoring</p><p>The job finished, and a score is requested. Only the evaluator's score can promote a candidate.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, step 12</p></section>
+<section id="ov-reconciling" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Reconciling</p><p>A reply went missing, or the process restarted. The controller looks up stored results by their IDs before it decides anything, and it starts no new trial.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 3, Lost score reply</p></section>
+<section id="ov-stopped" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Stopped</p><p>The search is over and the incumbent is frozen. A trial can still be pending, and late evidence closes it along the small loop. No edge leads back to a new trial.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 3, Cancel mid-run</p></section>
+<section id="ov-done" data-overview-panel><p class="cm-ov-kind">Mode</p><p class="cm-ov-title">Done</p><p>The holdout score is recorded, once. No transition leaves Done.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, step 14</p></section>
+<section id="ov-search" data-overview-panel><p class="cm-ov-kind">Group</p><p class="cm-ov-title">Search</p><p>Every mode from Ready to Reconciling. A cancellation or the deadline moves the run to Stopped from any of them, and the policy cannot prevent it.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 2, step 13</p></section>
+<section id="ov-flight" data-overview-panel><p class="cm-ov-kind">Group</p><p class="cm-ov-title">Trial in flight</p><p>Dispatching, Running, and Scoring: the modes that wait on the scheduler or the evaluator. A timeout or a restart in any of them moves the run to Reconciling.</p><p class="cm-ov-meta"><b>Developed in</b> Figure 3, Lost score reply</p></section>
+    </div>
+  </div>
+  <ul class="cm-legend" aria-label="Legend">
+    <li><span class="cm-swatch is-policy"></span>Thick line: the policy chooses this edge</li>
+    <li><span class="cm-swatch is-stop"></span>Dashed line: a hard stop from any mode in Search</li>
+  </ul>
+</div>
