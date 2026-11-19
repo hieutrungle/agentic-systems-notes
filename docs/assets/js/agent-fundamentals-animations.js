@@ -176,6 +176,42 @@ function experimentReadout(root) {
   };
 }
 
+// Keep a figure's shape fixed while the reader steps through it. For each panel
+// whose text changes, measure its height in every stage at the current width and
+// reserve the tallest, so spare space collects at the bottom of the panel. The
+// figure then changes shape only when the page width does.
+function reserveSpace(root, selector, visit) {
+  let width = -1;
+  let frame = 0;
+
+  function regions() {
+    const nodes = [...root.querySelectorAll(selector)].map(node =>
+      getComputedStyle(node).display === "inline" ? node.parentElement : node);
+    return [...new Set(nodes)];
+  }
+
+  function measure() {
+    const nodes = regions();
+    const tallest = nodes.map(() => 0);
+    root.setAttribute("aria-busy", "true");
+    for (const node of nodes) node.style.minHeight = "";
+    visit(() => nodes.forEach((node, i) => {
+      tallest[i] = Math.max(tallest[i], node.getBoundingClientRect().height);
+    }));
+    nodes.forEach((node, i) => { node.style.minHeight = Math.ceil(tallest[i]) + "px"; });
+    root.removeAttribute("aria-busy");
+  }
+
+  new ResizeObserver(([entry]) => {
+    const next = Math.round(entry.contentRect.width);
+    if (next === width) return;
+    width = next;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(measure);
+  }).observe(root);
+  document.fonts?.ready.then(() => requestAnimationFrame(measure));
+}
+
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
 function mountAnimation(root, stages, readout) {
@@ -221,10 +257,14 @@ function mountAnimation(root, stages, readout) {
     shown = null;
     seek.value = index;
     seek.setAttribute("aria-valuetext", stage().title);
-    status.textContent = "Stage " + (index + 1) + " of " + stages.length + " · " + stage().title;
+    status.textContent = statusText(index);
     previous.setAttribute("aria-disabled", index === 0);
     next.setAttribute("aria-disabled", index === last);
     positionPackets();
+  }
+
+  function statusText(i) {
+    return "Stage " + (i + 1) + " of " + stages.length + " · " + stages[i].title;
   }
 
   function updatePlayButton() {
@@ -302,6 +342,19 @@ function mountAnimation(root, stages, readout) {
 
   renderStage();
   controls.hidden = false;
+  reserveSpace(root, "[data-transfer], [data-message], [data-value], [data-detail], [data-state], "
+    + "[data-experiment-message], [data-config], [data-score], [data-status]", (measure) => {
+    stages.forEach((item, i) => {
+      for (const readoutStage of i > 0 ? [item, stages[i - 1]] : [item]) {
+        readout(item, readoutStage);
+        status.textContent = statusText(i);
+        measure();
+      }
+    });
+    shown = null;
+    status.textContent = statusText(index);
+    positionPackets();
+  });
 }
 
 const designStages = [
@@ -403,6 +456,15 @@ function mountDesignComparison(root) {
   render();
   narration.hidden = false;
   controls.hidden = false;
+  reserveSpace(root, "[data-narration], [data-status]", (measure) => {
+    const kept = index;
+    for (index = 0; index <= last; index += 1) {
+      render();
+      measure();
+    }
+    index = kept;
+    render();
+  });
 }
 
 for (const comparison of document.querySelectorAll("[data-agent-designs]")) {
@@ -466,6 +528,14 @@ function mountOverview(overview) {
 
   overview.querySelector("[data-overview-hint]").hidden = false;
   show(selected);
+  reserveSpace(overview, ".agent-overview-info", (measure) => {
+    const kept = displayed;
+    for (const node of nodes) {
+      show(node);
+      measure();
+    }
+    show(kept);
+  });
 }
 
 for (const overview of document.querySelectorAll("[data-agent-overview]")) {

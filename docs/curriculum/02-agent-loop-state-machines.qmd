@@ -19,7 +19,7 @@ The short answer to the opening question: make a transition explicit when its le
 [Block 01](01-agent-fundamentals.qmd) gave AutoResearch its protocol and an owner for every decision in its loop. This block builds the next piece: the controller that runs that loop, written as an explicit transition table with checkpoints and a defined response to lost replies, restarts, and hard stops. Later blocks attach typed tools, a durable ledger, planning, and sub-agents to this controller. The [case study](../case-studies/autoresearch.qmd#building-autoresearch-block-by-block) lists what each block adds.
 :::
 
-The lesson starts with why a loop stops being enough and who produces each event (§1–2). It builds the controller and formalizes it (§3–5), then traces an ordinary trial and a lost reply through it (§6–8). It returns to implementation choices, failure modes, and production concerns (§9–11), and closes with what AutoResearch now has (§12) and a conclusion (§13).
+The lesson starts with why a loop stops being enough and who produces each event (§1–2). It builds the controller and formalizes it (§3–5), then traces an ordinary trial and a lost reply through it (§6–8). It returns to implementation choices, failure modes, and production concerns (§9–11). It then applies the design to the real AutoResearch loop, where a coding agent edits the training script (§12), and closes with what AutoResearch now has (§13) and a conclusion (§14).
 
 <script type="module" src="../assets/js/agent-loop-animations.js"></script>
 
@@ -34,6 +34,7 @@ The lesson starts with why a loop stops being enough and who produces each event
 - Explain what a checkpoint proves about the run and what it leaves unknown about external jobs.
 - Trace an ambiguous outcome to the transition that reconciles it, and state the invariants that prevent duplicate promotion and new trials after a stop.
 - Decide when a plain loop, a transition table, or a graph engine is the right implementation.
+- Turn an agent loop written as prompt instructions into an explicit controller, and decide which of its rules must move out of the policy.
 
 ## 1. When a loop stops being enough
 
@@ -311,21 +312,121 @@ Treat the transition log as the audit trail and the replay input. Each entry rec
 
 Version the table. A long run should finish on the version it started with or migrate explicitly, which [Long-Horizon Agents](11-long-horizon-agents.qmd) and [Production Agent Infrastructure](12-production-infrastructure.qmd) take up. Parallel trials need one record per trial and a rule for joining their results, which [Core Agent Architectures](06-agent-architectures.qmd) compares with this single-flight design.
 
-## 12. AutoResearch after Block 02
+## 12. Applying the design to the real AutoResearch loop {#applying-the-design-to-the-real-autoresearch-loop}
+
+The worked controller searched over configurations with schematic numbers. The upstream AutoResearch project poses the full problem: a coding agent edits the training code itself, and the loop is written as instructions that the agent carries out [@karpathy2026autoresearch]. This section applies the lesson's method to that loop as published at commit `228791f`. It takes four steps: read the implicit state machine, decide which transitions become explicit, rewrite the rows that change, and check the result on an ambiguous outcome and against the invariants.
+
+### The loop as written
+
+In the upstream `program.md`, the agent edits only `train.py`. `prepare.py` holds the data loading, the fixed constants, and the evaluation function `evaluate_bpb`, and the agent must not modify it. Each experiment repeats five steps.
+
+1. Edit `train.py` with an experimental idea, then commit it with `git commit`.
+2. Run `uv run train.py > run.log 2>&1`. Training stops after a fixed budget of 5 minutes of training time. A run that takes longer than 10 minutes is killed and treated as a failure.
+3. Read `val_bpb` (validation bits per byte, where lower is better) from the log. An empty result means the run crashed. The agent reads the stack trace, tries to fix the problem, and gives up after a few attempts.
+4. Append a row to `results.tsv`, a file kept out of git, with the commit, `val_bpb`, peak memory, a status of keep, discard, or crash, and a description.
+5. Keep the commit if `val_bpb` is lower. If it is equal or worse, reset the branch to the commit the trial started from.
+
+The 5-minute budget and the 10-minute limit are upstream parameters. The instructions also ask the agent to weigh added code complexity against the size of an improvement, and never to pause or ask whether to continue. The loop runs until a person interrupts it. The author estimates about 12 experiments an hour, or about 100 overnight, from the 5-minute budget. Those figures are an estimate, not a measurement.
+
+### Step 1: Read the implicit state machine
+
+Each instruction corresponds to a mode, a guard, or an update from this lesson. The table maps them and records what enforces each one upstream.
+
+::: {.table-responsive tabindex="0" role="region" aria-label="Upstream instructions mapped to controller concepts"}
+
+| Upstream instruction | Concept in this lesson | Enforced by | Where the state lives |
+|------|------|-----|------|
+| Edit `train.py`, then commit | A proposal, then the commit before dispatch (rows 3 and 7) | The agent | Git branch |
+| Edit only `train.py`, add no packages | Gate guard (row 7) | The agent | The diff |
+| Stop training after 5 minutes | Per-trial compute cap | A `break` in `train.py` | Code the agent edits |
+| Kill a run after 10 minutes | A cap whose breach fails the trial (row 10) | The agent | The agent's shell session |
+| Read `val_bpb`, and treat an empty result as a crash | Score and job-failed events (rows 10 and 11) | The agent, reading text that `train.py` prints | `run.log` |
+| Give up after a few fix attempts | Attempt counter | The agent's judgment | The agent's context |
+| Append to `results.tsv` | Ledger update when a trial closes | The agent | A file outside git |
+| Keep if lower, otherwise reset | Promotion rule (row 11) | The agent | Branch head |
+| Never stop | Stop rule (rows 2 and 12) | A person who interrupts | Nowhere |
+
+:::
+
+Every rule is enforced by the policy or by code the policy can edit. `program.md` is a transition table written in prose and executed by the same model that proposes the experiments. That is a reasonable design for its purpose: one GPU, one person, changes that git can undo, and a log the person reads in the morning. It is a compact demonstration, not a hardened service.
+
+Three details of the code at that commit shape the redesign. First, the metric passes through agent-written code. `train.py` calls `evaluate_bpb` and prints the line the agent reads. `evaluate_bpb` obtains its losses by calling the model, and the model's forward pass and loss are defined in `train.py`. `train.py` can also request the validation split from the shared data loader. Second, the 5-minute budget is a `break` in `train.py`. Third, the run's state is split across git, `run.log`, `results.tsv`, and the agent's context, and no durable record says which trial is in flight. Prose rules can also conflict. The simplicity criterion keeps a much simpler change with a score of about zero improvement, while the loop resets on an equal score. A transition table forces a choice between the two.
+
+### Step 2: Decide which transitions become explicit
+
+Apply the rule from the start of the lesson. Make a transition explicit when its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. The limits below are schematic.
+
+- **Keep with the policy.** The code change itself, whether a crash looks fixable and what fix to try, and when to ask to stop because ideas have run out. These choices need judgment, and the gate can check that each option is legal.
+- **Move legality into the gate.** "Edit only `train.py`" and "add no packages" become guards on the diff, and the approval binds the diff's hash. The gate also checks that `prepare.py` and the lock file match pinned hashes. "A few attempts" becomes a guard: at most three fix attempts per idea. A fix is a complete diff against the incumbent, and the policy labels it with the idea it fixes. A policy could mislabel a fix as a new idea, so the trial cap is the bound that actually holds.
+- **Enforce the time budget outside the agent's code.** A **process host**, a supervisor that outlives the controller, launches each training run under a run ID and kills it at 7 minutes of wall-clock time: the 5-minute budget plus an allowance for startup and saving. That cap replaces the agent's 10-minute kill. A run that deletes the `break` can still train for up to the allowance. Strictly equal budgets need the timer in pinned code that calls the agent's training step.
+- **Move measurement out of code the agent writes.** `train.py` saves the trained weights. A pinned evaluator builds the candidate's model, takes its logits, and computes bits per byte in its own code. It first checks causality: changing later tokens must not change earlier positions' logits. Training runs in a sandbox where neither the validation shard nor the holdout is mounted. Model code still runs during scoring, so the holdout remains the backstop against a gamed metric.
+- **Make promotion a row.** Keep a candidate only if its `val_bpb` is strictly lower than the incumbent's. If a team values simplifications, it can add a second measured rule instead of a judgment call. One version keeps a candidate that deletes non-blank, non-comment lines from `train.py` and scores no worse than the best score so far plus a tolerance τ. τ must exceed the evaluator's measured noise. Comparing against the best score so far keeps repeated simplifications from drifting upward.
+- **Keep git and the results file behind the record.** The candidate commit lives on its own ref, not on the branch. The branch moves only when row 11 promotes, after the checkpoint, through an idempotent "set the branch to this commit" operation. `results.tsv` becomes a report regenerated from the ledger, one row per closed trial.
+- **Replace "never stop" with a stop rule.** Row 2 ends the search at 60 trials or 120 proposals, and row 12 ends it at an 8-hour deadline or a person's cancel. Killing the agent in the middle of a command can leave a commit that was neither kept nor reset. A cancel event leaves a record and a frozen incumbent.
+- **Add a holdout.** At this commit, `prepare.py` assigns every shard except one pinned validation shard to training. The holdout is set up once, by reserving a shard in `prepare.py` before its hash is pinned. The evaluator scores the frozen incumbent on it once, after the search stops.
+
+### Step 3: Rewrite the rows that change
+
+Four terms carry the redesign. A **run ID** plays the role of the operation ID for one launch, and the process host refuses a second launch under the same ID. The **base commit** is the incumbent when the gate approves. The **candidate commit** is the base plus the approved diff. The **pinned evaluator** is the scoring code at a recorded hash, and it replaces evaluator `v1` in rows 11 and 16.
+
+::: {.table-responsive tabindex="0" role="region" aria-label="Controller rows rewritten for the upstream loop"}
+
+| # | Current mode | Event (source) | Guard | Update | Next mode |
+|-|----|-----|--------|---------|----|
+| 1 | Ready | Limits checked (controller) | Fewer than 60 trials and 120 proposals, and no stop requested | Build the context from the ledger: the incumbent commit and its `val_bpb`, recent results, and the last diff and log tail of any idea awaiting a fix | Proposing |
+| 3 | Proposing | **Patch proposed (policy)** | The reply answers the current turn | Count the proposal. Record the diff, its hash, and whether it is a new idea or a fix of an earlier idea. | Authorizing |
+| 6 | Authorizing | Rejected (gate) | The diff touches another file, adds a dependency, or does not apply to the incumbent commit, or it fixes an idea that has used three attempts | Record the reason for the next context | Ready |
+| 7 | Authorizing | Allowed (gate) | The approval binds the recorded diff hash, `prepare.py` and the lock file match their pinned hashes, and no stop is requested | Mint trial and run IDs. Create the candidate commit on its own ref, and record it with the base commit. Count the trial and reserve one 7-minute run slot. Commit the checkpoint, then ask the process host to launch. | Dispatching |
+| 9 | Running | Run done (process host) | The run ID matches the pending trial, the exit status is 0, and the weights were saved | Record the training time and peak memory. Request a score under the trial's scoring ID. | Scoring |
+| 10 | Running | Run failed (process host) | The run ID matches the pending trial | Covers a nonzero exit, missing weights, or a kill at the 7-minute cap. Store the diff and log tail for a possible fix, charge the slot, and close the trial as a crash. | Ready |
+| 11 | Scoring | Score (pinned evaluator) | The score is for the pending trial and the causality check passed | Charge the slot. If `val_bpb` is strictly lower than the incumbent's, record the candidate commit as the incumbent. Close the trial. After the checkpoint, set the branch to the incumbent commit. | Ready |
+
+:::
+
+The other rows keep their meaning, with the process host in place of the scheduler, a run ID in place of the operation ID, and run slots in place of GPU-hours. The deadline of row 12 is now 8 hours. A lookup reports a run as *done* only if it exited with status 0 and saved weights, so rows 16–17 inherit row 9's success guard. A run that fails the causality check gets a failed evaluation instead of a score, and the trial closes without promotion. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes. It detects a lost report from the process host, not a slow run.
+
+Where the policy chooses is unchanged: rows 3 and 4, a patch or a request to stop. Everything else that upstream left to the agent now fires on an event from the gate, the process host, the evaluator, the clock, or the operator. That covers measurement, keeping or discarding, accounting for crashes, enforcing time limits, and stopping. The branch moves only after row 11 promotes a candidate, so it moves only on a score from the pinned evaluator.
+
+**What the checkpoint proves.** Row 7's checkpoint records which diff was approved, the base and candidate commits, and the run ID under which training may have started. It does not prove that training started, finished, or produced a score.
+
+### Step 4: Trace an ambiguous outcome and check the invariants
+
+Suppose the controller restarts while trial t7 is in flight. In the upstream loop, the equivalent is the agent's session ending mid-run. A new session sees a commit at the branch head, a `run.log` that may be partial, and no row for that commit in `results.tsv`. It has to infer whether the commit was tested, because the fact that a trial was in flight existed only in the old session's context.
+
+With the explicit controller, the recovered event fires row 14, and Reconciling asks the process host about run `t7-run`. The last checkpoint and the host's answer select the row.
+
+- **Checkpoint says Dispatching, and the host has no run `t7-run`.** The crash came after row 7's checkpoint and before the launch reached the host. Row 20 asks the host to launch the same candidate commit under the same run ID. If the first launch did reach the host, the host refuses the duplicate.
+- **Checkpoint says Running, and the run is still training.** Row 20 resumes waiting. The 7-minute cap still applies.
+- **The run is done.** Row 17 requests the score under the trial's scoring ID, and row 16 or row 11 applies the promotion rule.
+- **The run failed, was killed, or saved no weights.** Row 19 applies row 10's update and closes the trial as a crash.
+
+If the host has lost a run it had accepted, no lookup row matches. Each timeout spends a recovery attempt, and row 15 closes the trial unresolved after the third.
+
+The five invariants carry over.
+
+1. **Single flight.** One trial is pending at a time, so the GPU runs one training process.
+2. **Close once.** Only the closing rows close a trial, and each requires the pending trial. `results.tsv` is regenerated from the ledger, so a restart cannot append a second row for t7.
+3. **No issuance after a stop.** Row 7 still requires that no stop is requested. A person's cancel is row 12, Stopped launches nothing, and the branch stays at the frozen incumbent.
+4. **Budget.** The search runs at most 60 trials, and the process host caps each at 7 minutes, so training uses at most 7 hours of GPU time. The 8-hour deadline bounds the search's wall-clock time.
+5. **Sealed holdout.** The evaluator scores the frozen incumbent on the holdout once, after the search stops. The training sandbox cannot read it, and no row lets the search read it.
+
+Our engineering judgment is that upstream's prompt-level loop is the right first version for one person watching one GPU. The explicit controller is the version to build when runs go unattended for long periods, the metric decides what ships, or the result must survive a restart. Later blocks add the pieces it assumes: a sandboxed code-edit tool and typed operations (Block 03), a durable ledger (Block 04), and an evaluation harness against fixed and conventional baselines (Block 09).
+
+## 13. AutoResearch after Block 02
 
 Compare Block 01's [top-level design](01-agent-fundamentals.qmd#fig-autoresearch-design) with @fig-controller-states. Each box of the loop became one or more modes, and each arrow became one or more rows with a guard. The policy's role did not grow. It still chooses the next trial or asks to stop. What grew is the runtime's precision about everything else.
 
 ::: {.callout-tip}
 ## Built in Block 02, and next
 
-**Built in this block.** The controller: nine modes, 23 rows, five invariants, and a termination argument. `labs/controller.py` implements it, and its tests replay both traces, a restart, and a cancellation, and feed random event sequences while checking the invariants.
+**Built in this block.** The controller: nine modes, 23 rows, five invariants, and a termination argument. `labs/controller.py` implements it, and its tests replay both traces, a restart, and a cancellation, and feed random event sequences while checking the invariants. §12 applies the same table to the upstream loop, where the policy's proposal is a patch to `train.py` and measurement moves into a pinned evaluator.
 
-**Next.** [Tool Use](03-tool-use.qmd) specifies the operations behind rows 7–9 and 14–20: typed requests to submit, score, and look up trials, with validation, authorization, and the operation and scoring IDs that reconciliation relies on.
+**Next.** [Tool Use](03-tool-use.qmd) specifies the operations behind rows 7–9 and 14–20: typed requests to edit training code in a sandbox and to submit, score, and look up trials, with validation, authorization, and the operation and scoring IDs that reconciliation relies on.
 :::
 
-## 13. Conclusion
+## 14. Conclusion
 
-The opening question asked when transitions should be explicit in the controller. Make a transition explicit where its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. In AutoResearch that covers almost every edge. The approval binds the exact arguments, row 7 commits before sending, reconciliation reads stored results by ID, and Ready runs the stop rule before every policy turn. The policy keeps the one decision that benefits from judgment: which trial to run next, and whether to ask to stop.
+The opening question asked when transitions should be explicit in the controller. Make a transition explicit where its legality, its effect on durable state, or a stop guarantee must hold no matter what the policy proposes or the environment delivers. In AutoResearch that covers almost every edge. The approval binds the exact arguments, row 7 commits before sending, reconciliation reads stored results by ID, and Ready runs the stop rule before every policy turn. The policy keeps the one decision that benefits from judgment: which trial to run next, and whether to ask to stop. Applied to the upstream loop, the same rule moves measurement, promotion, crash accounting, time limits, and the stop out of the agent's instructions and into rows. It leaves the agent the patch, the decision to try a fix, and a request to stop.
 
 - **A loop repeats work. A transition table says what is legal next.**
 - **A checkpoint is evidence about the controller, not about the world.**
@@ -334,12 +435,12 @@ The opening question asked when transitions should be explicit in the controller
 
 The controller now knows what to do with every reply. The next block defines the operations that produce those replies.
 
-## 14. Companion reading {#companion-reading}
+## 15. Companion reading {#companion-reading}
 
 - *AI Agents in Action*, second edition, chapter 9, "Understanding the agentic loop." Mark which steps of the book's loop the model decides and which the code fixes, then compare them with rows 3 and 4 of the transition table [@lanham2026aiagents].
 - *Building Applications with AI Agents*, chapter 5, "Orchestration." For the reflex, ReAct, and planner–executor agent types, identify which transitions the model selects and where a runtime guard would sit [@albada2025applications].
 
-## 15. Conceptual questions
+## 16. Conceptual questions
 
 1. In the AutoResearch controller, which edges can the policy choose, and what prevents it from authorizing its own trial or promoting a candidate?
 
