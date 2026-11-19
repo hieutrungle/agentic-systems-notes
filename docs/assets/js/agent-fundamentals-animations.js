@@ -2,11 +2,13 @@ const BASELINE = ["Baseline", "0.842", "2.0 GPU-h", "0"];
 const PENDING = ["Baseline", "0.842", "2.0 GPU-h", "1"];
 const UPDATED = ["Candidate from #42", "0.851", "1.4 GPU-h", "0"];
 
-const initialInputs = "Goal: improve validation within 2 GPU-h.\nBaseline: 0.842 · metrics available.";
-const context0 = "Baseline 0.842 · budget 2.0 GPU-h\nNo experiment pending.";
+const goal = "Improve the validation score within 2 GPU-hours.";
+const initialInputs = "Goal g — " + goal + "\nLedger z₀ — Baseline is the incumbent, 2.0 GPU-hours remain, and no jobs are pending.\nObservation o₀ — The evaluator reports a baseline score of 0.842.";
+const context0 = "Find settings that beat 0.842. You have 2.0 GPU-hours and no pending jobs.";
 const proposal0 = "run_experiment(lr = 3e-4, seed = 7)";
-const result1 = "Validation 0.851 · cost 0.6 GPU-h.";
-const context1 = "Candidate from #42 scored 0.851.\n1.4 GPU-h unspent · no job pending.";
+const result1 = "Job #42 scored 0.851 and used 0.6 GPU-hours.";
+const feedback1 = "Ledger z₁ — Job #42’s settings are the incumbent, 1.4 GPU-hours remain, and no jobs are pending.\nObservation o₁ — " + result1;
+const context1 = "Job #42 scored 0.851 with learning rate 0.0003 and seed 7, up from 0.842. You have 1.4 GPU-hours for the next trial.";
 const proposal1 = "replicate(config_from_job = 42, seed = 11)";
 
 function runtimeStage(title, node, edge, message, value, detail, state, duration) {
@@ -14,15 +16,15 @@ function runtimeStage(title, node, edge, message, value, detail, state, duration
 }
 
 const runtimeStages = [
-  runtimeStage("Read the architecture", null, null, "Initial inputs · g, z₀, o₀", initialInputs,
-    "Decisions move down the left. Observations and updated state return up the right.", BASELINE, 2000),
+  runtimeStage("Read the goal", null, null, "Goal · g", goal,
+    "Follow one trial down the left and its result back up the right.", BASELINE, 2000),
   runtimeStage("Read goal, state, and observation", "inputs", null, "Input packet · g, z₀, o₀", initialInputs,
     "The controller starts with the goal, its current record, and the baseline observation.", BASELINE, 2400),
   runtimeStage("Construct context", "context", "inputs-context", "Constructed context · c₀", context0,
     "The context builder selects the evidence the policy will see.", BASELINE, 3000),
   runtimeStage("Propose a trial", "policy", "context-policy", "PROPOSED ACTION · ã₀", proposal0,
     "The policy picks a candidate. Nothing has been submitted.", BASELINE, 3000),
-  runtimeStage("Validate the proposal", "gate", "policy-gate", "Proposal under review · Γ",
+  runtimeStage("Validate the proposal", "gate", "policy-gate", "Permission checks · Γ",
     "✓ Tool permitted\n✓ Parameters valid\n✓ Estimated cost within budget\n✓ No approval required",
     "The runtime checks the request before authorizing it.", BASELINE, 4100),
   runtimeStage("Authorize the operation", "gate", "gate-executor", "AUTHORIZED ACTION · aᵃᵘᵗʰ₀", proposal0,
@@ -31,22 +33,22 @@ const runtimeStages = [
     "The runtime is waiting for evidence that the scheduler accepted the request.", BASELINE, 2700),
   runtimeStage("Scheduler accepts job #42", "environment", "executor-environment", "Applied operation · u₀", "The scheduler enqueues job #42.",
     "The acknowledgement lets the runtime record one pending job.", PENDING, 3100),
-  runtimeStage("Job #42 finishes", "environment", null, "Environment · x₀ → x₁", "Job #42 runs and completes.",
-    "The training job produces a validation score and a compute charge.", PENDING, 2400),
+  runtimeStage("Job #42 finishes", "environment", null, "Environment · x₀ → x₁", "Job #42 finishes training.",
+    "The runtime still lists the job as pending while it waits for the result.", PENDING, 2400),
   runtimeStage("Receive score 0.851 and cost 0.6 GPU-h", "observation", "environment-observation", "Observation · o₁", result1,
     "The result travels back. The runtime has yet to reconcile its state.", PENDING, 3200),
-  runtimeStage("Record the incumbent and continue", "update", "observation-update", "State update · z₁",
-    "Keep the candidate from #42. Charge 0.6 GPU-h.\nD(…) → continue.",
-    "The controller records the new incumbent and clears the pending job.", UPDATED, 3500),
-  runtimeStage("Feed the update into the next turn", "inputs", "feedback", "Feedback · z₁ and o₁", context1,
-    "The observation changes the information available for the next decision.", UPDATED, 3800),
+  runtimeStage("Record the incumbent and continue", "update", "observation-update", "Updated ledger · z₁ and stop check · D",
+    "Promote #42’s settings because 0.851 beats 0.842. Close the job and deduct 0.6 GPU-hours.",
+    "The stop check returns “continue” with 1.4 GPU-hours and four trials left.", UPDATED, 3500),
+  runtimeStage("Feed the update into the next turn", "inputs", "feedback", "Feedback · z₁ and o₁", feedback1,
+    "The context builder reads the updated ledger and the result alongside the original goal.", UPDATED, 3800),
   runtimeStage("Construct the second context", "context", "inputs-context", "Constructed context · c₁", context1,
     "The policy now has a measured improvement and a smaller remaining budget.", UPDATED, 3100),
   runtimeStage("Propose replication after the validation gain", "policy", "context-policy", "Proposed action · ã₁", proposal1,
     "Check whether the gain repeats with a new seed. Authorization comes next.", UPDATED, 3700),
-  runtimeStage("Feedback changed the next proposal", "policy", null, "Same goal and budget, different result",
-    "A gain prompts replication. A flat or worse score could prompt a different learning rate.",
-    "The result changes the policy's choice within the same runtime limits.", UPDATED, 5100),
+  runtimeStage("Feedback changed the next proposal", "policy", null, "Why propose replication?",
+    "The gain from 0.842 to 0.851 gives the model a reason to try the same settings with a new seed.",
+    "With the same 1.4 GPU-hours left, a flat or worse score could have prompted a different learning rate.", UPDATED, 5100),
 ];
 
 const fixedTrials = [["A", "0.81"], ["B", "0.79"], ["C", "0.83"]];

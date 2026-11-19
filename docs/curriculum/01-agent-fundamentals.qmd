@@ -114,7 +114,7 @@ The learned policy proposes an operation. The runtime authorizes and dispatches 
 :::
 
 ::: {#agent-control-transcript}
-**Text walkthrough.** The starting score is 0.842. With two GPU-hours available, the model proposes a trial with learning rate 0.0003 and random seed 7. The runtime approves those exact settings and submits the request. The scheduler accepts it as job #42. At this point the runtime knows the job was accepted. Its score will arrive later.
+**Text walkthrough.** The goal $g$ is to improve the validation score within two GPU-hours. The initial ledger $z_0$ lists the baseline as incumbent, two GPU-hours available, and no pending jobs. The first observation $o_0$ is the evaluator’s baseline score of 0.842. Given that context, the model proposes a trial with learning rate 0.0003 and random seed 7. The runtime approves those exact settings and submits the request. The scheduler accepts it as job #42. At this point the runtime knows the job was accepted. Its score will arrive later.
 
 Job #42 scores 0.851 and uses 0.6 GPU-hours. The runtime records the result, marks the job complete, and updates the remaining budget to 1.4 GPU-hours. The candidate is now the **incumbent**, the best configuration seen so far on validation. The model suggests repeating it with seed 11 to see whether the gain holds. The figure ends at that suggestion.
 :::

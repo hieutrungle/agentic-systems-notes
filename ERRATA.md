@@ -2,6 +2,10 @@
 
 Record corrections to published material here, newest first. Include the date, page and section, prior claim, corrected claim, and supporting source or reproducible check.
 
+## 2026-11-19 · Block 01, Figure 2
+
+The opening card labeled the goal, ledger, and observation as initial inputs without identifying each value. The first card now states the goal. Step forward once to see the initial ledger and the evaluator’s baseline score of 0.842, each paired with its symbol. After job #42 completes, the feedback step likewise distinguishes its reported score and cost from the updated ledger. [Figure 2 and text walkthrough](https://hieutrungle.github.io/agentic-systems-notes/curriculum/01-agent-fundamentals.html#fig-agent-runtime)
+
 ## 2026-11-19 · Block 02, lost replies and the launch lookup in §7 and §12
 
 The prior §7 said the score reply never arrived, although the trace delivers it after the lookup. The reply misses the scoring deadline and later arrives after the trial is closed. The prior §12 inferred the crash happened before launch from an empty host lookup. The lookup leaves open whether the original request is still in transit. A resend uses the same run ID and relies on the host to deduplicate it. See [the lost-score trace](https://hieutrungle.github.io/agentic-systems-notes/curriculum/02-agent-loop-state-machines.html#trace-2-a-lost-score-reply) and run `python -m labs.controller --scenario lost-score` or `python -m labs.controller --table` for the recovery rules.
