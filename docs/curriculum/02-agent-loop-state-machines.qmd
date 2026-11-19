@@ -354,7 +354,7 @@ Four terms carry the redesign. A **run ID** plays the role of the operation ID f
 
 ```
 
-Controller rows rewritten for the upstream loop. Select a highlighted mode, then a row, to compare it with @fig-controller-states.
+Controller rows rewritten for the upstream loop. Select a mode that is not faded, then a row, to compare it with @fig-controller-states.
 
 :::
 

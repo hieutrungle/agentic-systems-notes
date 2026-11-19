@@ -64,9 +64,9 @@
   stroke-linejoin: round;
 }
 
+/* Accent blue marks only the selected row. Policy edges are thicker, in the wire colour. */
 .loop-map-edge.is-policy {
-  stroke: var(--agent-accent);
-  stroke-width: 2.6;
+  stroke-width: 3.2;
 }
 
 .loop-map-edge.is-stop {
@@ -80,7 +80,7 @@
 }
 
 .loop-map-label.is-policy {
-  fill: var(--agent-accent);
+  fill: var(--bs-body-color);
   font-weight: 650;
 }
 
@@ -118,8 +118,8 @@
 }
 
 .loop-map-graph .loop-map-node.is-policy {
-  border: 2px solid var(--agent-accent);
-  color: var(--agent-accent);
+  border: 1px solid var(--agent-line);
+  box-shadow: inset 0 0 0 2px var(--bs-body-bg), inset 0 0 0 3px var(--agent-line);
 }
 
 .loop-map-graph .loop-map-node.is-gate {
@@ -229,10 +229,6 @@
   cursor: pointer;
 }
 
-.loop-map-row.is-policy {
-  color: var(--agent-accent);
-}
-
 .loop-map-row[aria-pressed="true"] {
   border-color: var(--agent-accent);
   background: var(--agent-active);
@@ -265,7 +261,7 @@
 }
 
 .loop-map-info .loop-map-owner.is-policy {
-  color: var(--agent-accent);
+  color: var(--bs-body-color);
   font-weight: 600;
 }
 
@@ -323,7 +319,11 @@
 }
 
 .loop-swatch-policy {
-  border-top: 3px solid var(--agent-accent);
+  border-top: 4px solid var(--loop-wire);
+}
+
+.loop-swatch-active {
+  border-top: 4px solid var(--agent-accent);
 }
 
 .loop-swatch-stop {

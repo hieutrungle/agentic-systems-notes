@@ -6,7 +6,7 @@
       <svg class="loop-map-wires" viewBox="0 0 440 650" aria-hidden="true">
         <defs>
           <marker id="map-recovery-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/></marker>
-          <marker id="map-recovery-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
+          <marker id="map-recovery-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/></marker>
           <marker id="map-recovery-arrow-active" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
         </defs>
         <rect class="loop-group" x="96" y="80" width="336" height="562" rx="10"/>
@@ -342,7 +342,8 @@
     </div>
   </div>
   <ul class="loop-map-legend" aria-label="Legend">
-    <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>The policy chooses this edge</li>
+    <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>Thick line: the policy chooses this edge</li>
+    <li><span class="loop-swatch loop-swatch-active" aria-hidden="true"></span>Blue: the row you selected</li>
     <li><span class="loop-swatch" aria-hidden="true"></span>The gate, scheduler, evaluator, clock, or a controller rule fires it</li>
     <li><span class="loop-swatch loop-swatch-stop" aria-hidden="true"></span>Hard stop from any mode in Search</li>
     <li><span class="loop-swatch-group" aria-hidden="true"></span>An edge leaving a group applies to every mode in it</li>
