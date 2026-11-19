@@ -368,6 +368,86 @@ function mountLessonToc() {
 
 mountLessonToc();
 
+// Figures 1, 3, and 4: select a mode or group to list the rows that leave it, then
+// a row to read its event, guard, and update. The selected row's edge is highlighted.
+function mountControllerMap(root) {
+  const modes = [...root.querySelectorAll("[data-map-mode]")];
+  const sections = new Map([...root.querySelectorAll("[data-map-section]")]
+    .map(section => [section.dataset.mapSection, section]));
+  const wires = [...root.querySelectorAll(".loop-map-wires [data-rows]")];
+  const chosen = new Map();
+  let current = root.dataset.defaultMode;
+
+  const rowButtons = section => [...section.querySelectorAll("[data-map-row]")];
+
+  function highlight(row) {
+    for (const wire of wires) {
+      wire.classList.toggle("is-active", row !== null && wire.dataset.rows.split(" ").includes(row));
+    }
+  }
+
+  function showRow(section, row) {
+    for (const button of rowButtons(section)) button.setAttribute("aria-pressed", button.dataset.mapRow === row);
+    for (const detail of section.querySelectorAll("[data-map-detail]")) detail.hidden = detail.dataset.mapDetail !== row;
+    chosen.set(section.dataset.mapSection, row);
+    highlight(row);
+  }
+
+  function showMode(key) {
+    current = key;
+    for (const button of modes) {
+      const on = button.dataset.mapMode === key;
+      button.classList.toggle("is-active", on);
+      button.setAttribute("aria-pressed", on);
+    }
+    for (const [name, section] of sections) section.hidden = name !== key;
+    const section = sections.get(key);
+    const buttons = rowButtons(section);
+    if (buttons.length) showRow(section, chosen.get(key) ?? buttons[0].dataset.mapRow);
+    else highlight(null);
+  }
+
+  for (const button of modes) {
+    button.disabled = false;
+    button.addEventListener("click", (event) => {
+      showMode(button.dataset.mapMode);
+      // Keyboard activation moves focus to the mode's selected row.
+      if (event.detail === 0) sections.get(current).querySelector("[data-map-row][aria-pressed='true']")?.focus();
+    });
+  }
+  for (const section of sections.values()) {
+    for (const button of rowButtons(section)) {
+      button.disabled = false;
+      button.addEventListener("click", () => showRow(section, button.dataset.mapRow));
+    }
+  }
+
+  const defaultSection = sections.get(current);
+  if (defaultSection && root.dataset.defaultRow) chosen.set(current, root.dataset.defaultRow);
+  showMode(current);
+  root.querySelector("[data-map-hint]").hidden = false;
+
+  reserveSpace(root, "[data-map-info]", (measure) => {
+    const keep = [current, new Map(chosen)];
+    for (const [name, section] of sections) {
+      showMode(name);
+      const buttons = rowButtons(section);
+      if (!buttons.length) measure();
+      for (const button of buttons) {
+        showRow(section, button.dataset.mapRow);
+        measure();
+      }
+    }
+    chosen.clear();
+    for (const [name, row] of keep[1]) chosen.set(name, row);
+    showMode(keep[0]);
+  });
+}
+
+for (const root of document.querySelectorAll("[data-controller-map]")) {
+  mountControllerMap(root);
+}
+
 for (const root of document.querySelectorAll("[data-loop-trace]")) {
   mountTrace(root);
 }

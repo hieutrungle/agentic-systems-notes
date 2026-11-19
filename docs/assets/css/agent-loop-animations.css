@@ -1,35 +1,48 @@
 /* Block 02 figures. Shared frame, controls, and disclosures come from agent-fundamentals-animations.css. */
 
-.loop-states,
+.loop-map,
 .loop-trace {
   --loop-wire: color-mix(in srgb, var(--bs-body-color) 62%, var(--bs-body-bg));
   --loop-group: color-mix(in srgb, var(--bs-body-color) 3.5%, var(--bs-body-bg));
 }
 
-/* Figure 1: state diagram */
+/* Figures 1, 3, and 4: interactive controller map */
 
-.loop-states {
-  container: loop-states / inline-size;
+.loop-map {
+  container: loop-map / inline-size;
 }
 
-.loop-states-layout {
+.loop-map-hint {
+  margin-bottom: 0.5rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.88rem;
+}
+
+.loop-map-layout {
   display: grid;
   gap: 0.9rem;
-  align-items: center;
+  align-items: start;
 }
 
-@container loop-states (min-width: 36rem) {
-  .loop-states-layout {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+@container loop-map (min-width: 40rem) {
+  .loop-map-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
 }
 
-.loop-states-diagram {
+.loop-map-graph {
+  position: relative;
+  container-type: inline-size;
+  inline-size: 100%;
+  max-inline-size: 27rem;
+  margin-inline: auto;
+  aspect-ratio: 440 / 650;
+}
+
+.loop-map-wires {
   display: block;
   inline-size: 100%;
-  max-inline-size: 25rem;
-  block-size: auto;
-  margin-inline: auto;
+  block-size: 100%;
   overflow: visible;
   font-family: var(--bs-body-font-family);
 }
@@ -44,70 +57,113 @@
   stroke-dasharray: 3 2;
 }
 
-.loop-group-label {
-  fill: var(--bs-secondary-color);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.loop-node rect {
-  fill: var(--bs-body-bg);
-  stroke: var(--agent-line);
-  stroke-width: 1.2;
-}
-
-.loop-node text {
-  fill: var(--bs-body-color);
-  font-size: 15px;
-  font-weight: 650;
-  text-anchor: middle;
-}
-
-.loop-node-policy rect {
-  stroke: var(--agent-accent);
-  stroke-width: 2;
-}
-
-.loop-node-policy text {
-  fill: var(--agent-accent);
-}
-
-.loop-node-gate rect {
-  stroke-dasharray: 4 2;
-}
-
-.loop-node-terminal rect {
-  stroke-width: 2.4;
-}
-
-.loop-edges path {
+.loop-map-edge {
   fill: none;
   stroke: var(--loop-wire);
   stroke-width: 1.7;
   stroke-linejoin: round;
 }
 
-.loop-edges-policy path {
+.loop-map-edge.is-policy {
   stroke: var(--agent-accent);
   stroke-width: 2.6;
 }
 
-.loop-edges .loop-edge-stop {
+.loop-map-edge.is-stop {
   stroke-dasharray: 5 3;
 }
 
-.loop-edge-labels text {
+.loop-map-label {
   fill: var(--bs-secondary-color);
   font-size: 12.5px;
   font-weight: 550;
 }
 
-.loop-edge-labels .loop-policy-label {
+.loop-map-label.is-policy {
   fill: var(--agent-accent);
   font-weight: 650;
 }
 
-.loop-states-key {
+.loop-map-wires .is-muted {
+  opacity: 0.3;
+}
+
+.loop-map-edge.is-active {
+  stroke: var(--agent-accent);
+  stroke-width: 3.6;
+  opacity: 1;
+}
+
+.loop-map-label.is-active {
+  fill: var(--agent-accent);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.loop-map-graph .loop-map-node {
+  position: absolute;
+  inset-inline-start: calc(var(--x) * 100% / 440);
+  inset-block-start: calc(var(--y) * 100% / 650);
+  inline-size: calc(var(--w) * 100% / 440);
+  block-size: calc(var(--h) * 100% / 650);
+  padding: 0 0.15rem;
+  border: 1px solid var(--agent-line);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-family: inherit;
+  font-size: clamp(0.66rem, 3.4cqw, 0.95rem);
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.loop-map-graph .loop-map-node.is-policy {
+  border: 2px solid var(--agent-accent);
+  color: var(--agent-accent);
+}
+
+.loop-map-graph .loop-map-node.is-gate {
+  border-style: dashed;
+}
+
+.loop-map-graph .loop-map-node.is-terminal {
+  border-width: 2.4px;
+}
+
+.loop-map-graph .loop-map-node.is-group {
+  border: 1px dashed var(--bs-border-color);
+  background: var(--loop-group);
+  color: var(--bs-secondary-color);
+  font-size: clamp(0.58rem, 2.7cqw, 0.8rem);
+  font-weight: 600;
+}
+
+.loop-map-graph .loop-map-node.is-muted {
+  opacity: 0.68;
+}
+
+.loop-map-graph .loop-map-node:enabled {
+  cursor: pointer;
+}
+
+.loop-map-graph .loop-map-node:enabled:hover {
+  border-color: var(--agent-accent);
+}
+
+.loop-map-graph .loop-map-node.is-active {
+  border: 2px solid var(--agent-accent);
+  background: var(--agent-active);
+  opacity: 1;
+}
+
+.loop-map-graph .loop-map-node:focus-visible,
+.loop-map-row:focus-visible {
+  outline: 2px solid var(--agent-accent);
+  outline-offset: 2px;
+}
+
+.loop-map-info {
+  min-width: 0;
   padding: 0.75rem 0.85rem;
   border-inline-start: 3px solid var(--agent-accent);
   background: var(--agent-surface);
@@ -115,39 +171,151 @@
   line-height: 1.45;
 }
 
-.loop-states-key p,
-.loop-states-key ul {
+.loop-map-info p {
   margin: 0;
 }
 
-.loop-states-key p + p,
-.loop-states-key ul + p {
-  margin-top: 0.55rem;
+.loop-map-info section + section:not([hidden]) {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--bs-border-color);
 }
 
-.loop-states-key .loop-key-title {
-  margin-bottom: 0.4rem;
+.loop-map-info section[hidden] + section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.loop-map-info .loop-map-kind {
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+}
+
+.loop-map-info .loop-map-title {
+  margin-bottom: 0.25rem;
+  font-size: 1.02rem;
   font-weight: 650;
 }
 
-.loop-states-key ul {
+.loop-map-info .loop-map-about {
+  margin-bottom: 0.55rem;
+}
+
+.loop-map-rows {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  margin: 0 0 0.6rem;
   padding: 0;
   list-style: none;
 }
 
-.loop-states-key li {
-  display: grid;
-  grid-template-columns: 1.9rem minmax(0, 1fr);
+.loop-map-row {
+  display: flex;
+  gap: 0.45rem;
   align-items: baseline;
+  inline-size: 100%;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid var(--agent-line);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: start;
+}
+
+.loop-map-row:enabled {
+  cursor: pointer;
+}
+
+.loop-map-row.is-policy {
+  color: var(--agent-accent);
+}
+
+.loop-map-row[aria-pressed="true"] {
+  border-color: var(--agent-accent);
+  background: var(--agent-active);
+  box-shadow: inset 3px 0 0 var(--agent-accent);
+}
+
+.loop-map-row-number {
+  min-inline-size: 1.5em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.loop-map-detail {
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--bs-border-color);
+}
+
+.loop-map-detail + .loop-map-detail:not([hidden]) {
+  margin-top: 0.6rem;
+}
+
+.loop-map-info .loop-map-row-title {
+  font-weight: 650;
+}
+
+.loop-map-info .loop-map-owner {
+  margin-bottom: 0.35rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+}
+
+.loop-map-info .loop-map-owner.is-policy {
+  color: var(--agent-accent);
+  font-weight: 600;
+}
+
+.loop-map-detail dl {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.loop-map-detail dl > div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.loop-map-detail dt {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.loop-map-detail dd {
+  margin: 0;
+}
+
+.loop-map-info .loop-map-note {
+  margin-top: 0.5rem;
+  color: var(--bs-secondary-color);
+}
+
+.loop-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+}
+
+.loop-map-legend li {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .loop-swatch,
 .loop-swatch-group {
   display: inline-block;
   inline-size: 1.5rem;
-  translate: 0 -0.25em;
 }
 
 .loop-swatch {
@@ -162,9 +330,12 @@
   border-top: 2px dashed var(--loop-wire);
 }
 
+.loop-swatch-muted {
+  opacity: 0.3;
+}
+
 .loop-swatch-group {
   block-size: 0.9rem;
-  translate: 0 0.1em;
   border: 1px dashed var(--bs-border-color);
   border-radius: 3px;
   background: color-mix(in srgb, var(--bs-body-color) 6%, var(--bs-body-bg));

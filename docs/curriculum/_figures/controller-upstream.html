@@ -1,0 +1,239 @@
+<div class="agent-animation loop-map loop-map-upstream" data-controller-map data-default-mode="authorizing" data-default-row="7">
+  <p class="loop-map-hint" data-map-hint hidden>Select a mode or group, then one of its rows.</p>
+  <div class="loop-map-layout">
+    <div class="loop-map-graph" role="group" aria-label="Controller rows rewritten for the upstream AutoResearch loop" aria-describedby="map-upstream-desc">
+      <p id="map-upstream-desc" class="visually-hidden">The same modes and edges as Figure 1. Rows 1, 2, 3, 6, 7, 9, 10, 11, and 12 are rewritten for patches to train.py, commits, training runs under a process host, and a pinned evaluator. The other rows keep their meaning.</p>
+      <svg class="loop-map-wires" viewBox="0 0 440 650" aria-hidden="true">
+        <defs>
+          <marker id="map-upstream-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/></marker>
+          <marker id="map-upstream-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
+          <marker id="map-upstream-arrow-active" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
+        </defs>
+        <rect class="loop-group" x="96" y="80" width="336" height="562" rx="10"/>
+        <rect class="loop-group loop-group-inner" x="100" y="322" width="200" height="226" rx="9"/>
+        <path class="loop-map-edge" d="M170 138V174" data-rows="1" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label" x="178" y="160" text-anchor="start" data-rows="1">under limits (1)</text>
+        <path class="loop-map-edge" d="M170 100V54" data-rows="2" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label" x="178" y="76" text-anchor="start" data-rows="2">stop rule (2)</text>
+        <path class="loop-map-edge is-policy" d="M170 214V250" data-rows="3" marker-end="url(#map-upstream-arrow-policy)"/>
+        <text class="loop-map-label is-policy" x="178" y="236" text-anchor="start" data-rows="3">patch proposed (3)</text>
+        <path class="loop-map-edge is-policy is-muted" d="M230 195H410" data-rows="4 5 21"/>
+        <text class="loop-map-label is-policy is-muted" x="355" y="188" text-anchor="middle" data-rows="4">stop proposed (4)</text>
+        <text class="loop-map-label is-muted" x="355" y="209" text-anchor="middle" data-rows="5">invalid output (5)</text>
+        <path class="loop-map-edge" d="M230 271H410" data-rows="6"/>
+        <text class="loop-map-label" x="355" y="265" text-anchor="middle" data-rows="6">rejected (6)</text>
+        <path class="loop-map-edge" d="M170 290V344" data-rows="7" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label" x="178" y="312" text-anchor="start" data-rows="7">allowed (7)</text>
+        <path class="loop-map-edge is-muted" d="M170 384V420" data-rows="8" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label is-muted" x="178" y="406" text-anchor="start" data-rows="8">accepted (8)</text>
+        <path class="loop-map-edge" d="M170 460V496" data-rows="9" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label" x="178" y="482" text-anchor="start" data-rows="9">run done (9)</text>
+        <path class="loop-map-edge" d="M230 441H410" data-rows="10"/>
+        <text class="loop-map-label" x="355" y="435" text-anchor="middle" data-rows="10">run failed (10)</text>
+        <path class="loop-map-edge" d="M230 517H410" data-rows="11"/>
+        <text class="loop-map-label" x="355" y="511" text-anchor="middle" data-rows="11">scored (11)</text>
+        <path class="loop-map-edge is-muted" d="M230 615H410" data-rows="15 16 18 19"/>
+        <text class="loop-map-label is-muted" x="355" y="609" text-anchor="middle" data-rows="15 16 18 19">resolved</text>
+        <text class="loop-map-label is-muted" x="355" y="630" text-anchor="middle" data-rows="15 16 18 19">(15, 16, 18, 19)</text>
+        <path class="loop-map-edge" d="M410 615V119H232" data-rows="4 5 6 10 11 15 16 18 19 21" marker-end="url(#map-upstream-arrow)"/>
+        <path class="loop-map-edge is-stop" d="M400 80V33H232" data-rows="12" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label is-stop" x="316" y="25" text-anchor="middle" data-rows="12">cancel or 8-h deadline (12)</text>
+        <path class="loop-map-edge is-muted" d="M110 33H88" data-rows="13" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label is-muted" x="50" y="70" text-anchor="middle" data-rows="13">holdout</text>
+        <text class="loop-map-label is-muted" x="50" y="84" text-anchor="middle" data-rows="13">scored (13)</text>
+        <path class="loop-map-edge is-muted" d="M210 548V594" data-rows="14" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label is-muted" x="218" y="566" text-anchor="start" data-rows="14">timeout or</text>
+        <text class="loop-map-label is-muted" x="218" y="580" text-anchor="start" data-rows="14">restart (14)</text>
+        <path class="loop-map-edge is-muted" d="M130 596V550" data-rows="17 20" marker-end="url(#map-upstream-arrow)"/>
+        <text class="loop-map-label is-muted" x="136" y="566" text-anchor="start" data-rows="17 20">resume</text>
+        <text class="loop-map-label is-muted" x="136" y="580" text-anchor="start" data-rows="17 20">(17, 20)</text>
+      </svg>
+      <button type="button" class="loop-map-node is-muted" style="--x: 110; --y: 14; --w: 120; --h: 38" aria-controls="map-upstream-stopped" data-map-mode="stopped" disabled>Stopped</button>
+      <button type="button" class="loop-map-node is-terminal is-muted" style="--x: 14; --y: 14; --w: 72; --h: 38" aria-controls="map-upstream-done" data-map-mode="done" disabled>Done</button>
+      <button type="button" class="loop-map-node is-group" style="--x: 352; --y: 86; --w: 74; --h: 26" aria-controls="map-upstream-search" data-map-mode="search" disabled>Search</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 100; --w: 120; --h: 38" aria-controls="map-upstream-ready" data-map-mode="ready" disabled>Ready</button>
+      <button type="button" class="loop-map-node is-policy" style="--x: 110; --y: 176; --w: 120; --h: 38" aria-controls="map-upstream-proposing" data-map-mode="proposing" disabled>Proposing</button>
+      <button type="button" class="loop-map-node is-gate" style="--x: 110; --y: 252; --w: 120; --h: 38" aria-controls="map-upstream-authorizing" data-map-mode="authorizing" disabled>Authorizing</button>
+      <button type="button" class="loop-map-node is-group is-muted" style="--x: 236; --y: 326; --w: 60; --h: 34" aria-controls="map-upstream-flight" data-map-mode="flight" disabled>Trial in flight</button>
+      <button type="button" class="loop-map-node is-muted" style="--x: 110; --y: 346; --w: 120; --h: 38" aria-controls="map-upstream-dispatching" data-map-mode="dispatching" disabled>Dispatching</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 422; --w: 120; --h: 38" aria-controls="map-upstream-running" data-map-mode="running" disabled>Running</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 498; --w: 120; --h: 38" aria-controls="map-upstream-scoring" data-map-mode="scoring" disabled>Scoring</button>
+      <button type="button" class="loop-map-node is-muted" style="--x: 110; --y: 596; --w: 120; --h: 38" aria-controls="map-upstream-reconciling" data-map-mode="reconciling" disabled>Reconciling</button>
+    </div>
+    <div class="loop-map-info" data-map-info>
+      <section id="map-upstream-stopped" data-map-section="stopped" aria-label="Mode Stopped">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Stopped</p>
+        <p class="loop-map-note">Row 13 keeps its meaning. The holdout is a shard reserved in <code>prepare.py</code> before its hash is pinned.</p>
+      </section>
+      <section id="map-upstream-done" data-map-section="done" aria-label="Mode Done">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Done</p>
+        <p class="loop-map-note">Terminal mode. No row leaves Done.</p>
+      </section>
+      <section id="map-upstream-search" data-map-section="search" aria-label="Group Search">
+        <p class="loop-map-kind">Group</p>
+        <p class="loop-map-title">Search</p>
+        <p class="loop-map-about">Every mode inside the large group.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Search">
+          <li><button type="button" class="loop-map-row" data-map-row="12" aria-controls="map-upstream-search-row-12" disabled><span class="loop-map-row-number">12</span> Cancel or 8-hour deadline → Stopped</button></li>
+        </ul>
+        <div id="map-upstream-search-row-12" class="loop-map-detail" data-map-detail="12">
+          <p class="loop-map-row-title">Row 12 · Any mode in Search → Stopped</p>
+          <p class="loop-map-owner">Fired by: Operator or clock</p>
+          <dl>
+            <div><dt>Event</dt><dd>Cancel or 8-hour deadline (operator, clock)</dd></div>
+            <div><dt>Guard</dt><dd>None</dd></div>
+            <div><dt>Update</dt><dd>Record the hard stop, freeze the incumbent commit, and ask the process host to stop any run</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> A person's interrupt becomes a cancel event instead of killing the agent mid-command.</p>
+        </div>
+      </section>
+      <section id="map-upstream-ready" data-map-section="ready" aria-label="Mode Ready">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Ready</p>
+        <p class="loop-map-about">The stop rule now uses trial and proposal caps. Time limits move to the process host and row 12.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Ready">
+          <li><button type="button" class="loop-map-row" data-map-row="1" aria-controls="map-upstream-ready-row-1" disabled><span class="loop-map-row-number">1</span> Limits checked → Proposing</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="2" aria-controls="map-upstream-ready-row-2" disabled><span class="loop-map-row-number">2</span> Limits checked → Stopped</button></li>
+        </ul>
+        <div id="map-upstream-ready-row-1" class="loop-map-detail" data-map-detail="1">
+          <p class="loop-map-row-title">Row 1 · Ready → Proposing</p>
+          <p class="loop-map-owner">Fired by: Controller rule</p>
+          <dl>
+            <div><dt>Event</dt><dd>Limits checked (controller)</dd></div>
+            <div><dt>Guard</dt><dd>Fewer than 60 trials and 120 proposals, and no stop requested</dd></div>
+            <div><dt>Update</dt><dd>Build the context from the ledger: the incumbent commit and its <code>val_bpb</code>, recent results, and the last diff and log tail of any idea awaiting a fix</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> The compute check moves to the process host's per-run cap and the 8-hour deadline in row 12.</p>
+        </div>
+        <div id="map-upstream-ready-row-2" class="loop-map-detail" data-map-detail="2">
+          <p class="loop-map-row-title">Row 2 · Ready → Stopped</p>
+          <p class="loop-map-owner">Fired by: Controller rule</p>
+          <dl>
+            <div><dt>Event</dt><dd>Limits checked (controller)</dd></div>
+            <div><dt>Guard</dt><dd>A stop was requested, or 60 trials or 120 proposals are reached</dd></div>
+            <div><dt>Update</dt><dd>Record the stop reason, freeze the incumbent commit, and request the holdout score</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> Replaces upstream's instruction never to stop.</p>
+        </div>
+      </section>
+      <section id="map-upstream-proposing" data-map-section="proposing" aria-label="Mode Proposing">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Proposing</p>
+        <p class="loop-map-about">The policy proposes a patch or asks to stop.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Proposing">
+          <li><button type="button" class="loop-map-row is-policy" data-map-row="3" aria-controls="map-upstream-proposing-row-3" disabled><span class="loop-map-row-number">3</span> Patch proposed → Authorizing</button></li>
+        </ul>
+        <div id="map-upstream-proposing-row-3" class="loop-map-detail" data-map-detail="3">
+          <p class="loop-map-row-title">Row 3 · Proposing → Authorizing</p>
+          <p class="loop-map-owner is-policy">Fired by: Policy</p>
+          <dl>
+            <div><dt>Event</dt><dd>Patch proposed (policy)</dd></div>
+            <div><dt>Guard</dt><dd>The reply answers the current turn</dd></div>
+            <div><dt>Update</dt><dd>Count the proposal. Record the diff, its hash, and whether it is a new idea or a fix of an earlier idea.</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> The proposal is now a patch to <code>train.py</code> instead of a configuration.</p>
+        </div>
+      </section>
+      <section id="map-upstream-authorizing" data-map-section="authorizing" aria-label="Mode Authorizing">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Authorizing</p>
+        <p class="loop-map-about">The gate checks the diff before anything is committed or launched.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Authorizing">
+          <li><button type="button" class="loop-map-row" data-map-row="6" aria-controls="map-upstream-authorizing-row-6" disabled><span class="loop-map-row-number">6</span> Rejected → Ready</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="7" aria-controls="map-upstream-authorizing-row-7" disabled><span class="loop-map-row-number">7</span> Allowed → Dispatching</button></li>
+        </ul>
+        <div id="map-upstream-authorizing-row-6" class="loop-map-detail" data-map-detail="6">
+          <p class="loop-map-row-title">Row 6 · Authorizing → Ready</p>
+          <p class="loop-map-owner">Fired by: Gate</p>
+          <dl>
+            <div><dt>Event</dt><dd>Rejected (gate)</dd></div>
+            <div><dt>Guard</dt><dd>The diff touches another file, adds a dependency, or does not apply to the incumbent commit, or it fixes an idea that has used three attempts</dd></div>
+            <div><dt>Update</dt><dd>Record the reason for the next context</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> Upstream's "edit only <code>train.py</code>" and "a few attempts" become guards.</p>
+        </div>
+        <div id="map-upstream-authorizing-row-7" class="loop-map-detail" data-map-detail="7">
+          <p class="loop-map-row-title">Row 7 · Authorizing → Dispatching</p>
+          <p class="loop-map-owner">Fired by: Gate</p>
+          <dl>
+            <div><dt>Event</dt><dd>Allowed (gate)</dd></div>
+            <div><dt>Guard</dt><dd>The approval binds the recorded diff hash, <code>prepare.py</code> and the lock file match their pinned hashes, and no stop is requested</dd></div>
+            <div><dt>Update</dt><dd>Mint trial and run IDs. Create the candidate commit on its own ref, and record it with the base commit. Count the trial and reserve one 7-minute run slot. Commit the checkpoint, then ask the process host to launch.</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> The branch does not move here. Only a promotion in row 11 moves it.</p>
+        </div>
+      </section>
+      <section id="map-upstream-flight" data-map-section="flight" aria-label="Group Trial in flight">
+        <p class="loop-map-kind">Group</p>
+        <p class="loop-map-title">Trial in flight</p>
+        <p class="loop-map-note">Rows 14 and 15 keep their meaning. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes.</p>
+      </section>
+      <section id="map-upstream-dispatching" data-map-section="dispatching" aria-label="Mode Dispatching">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Dispatching</p>
+        <p class="loop-map-note">Row 8 keeps its meaning: the process host acknowledges the launch under the run ID.</p>
+      </section>
+      <section id="map-upstream-running" data-map-section="running" aria-label="Mode Running">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Running</p>
+        <p class="loop-map-about">A training run under a run ID, capped at 7 minutes by the process host.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Running">
+          <li><button type="button" class="loop-map-row" data-map-row="9" aria-controls="map-upstream-running-row-9" disabled><span class="loop-map-row-number">9</span> Run done → Scoring</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="10" aria-controls="map-upstream-running-row-10" disabled><span class="loop-map-row-number">10</span> Run failed → Ready</button></li>
+        </ul>
+        <div id="map-upstream-running-row-9" class="loop-map-detail" data-map-detail="9">
+          <p class="loop-map-row-title">Row 9 · Running → Scoring</p>
+          <p class="loop-map-owner">Fired by: Process host</p>
+          <dl>
+            <div><dt>Event</dt><dd>Run done (process host)</dd></div>
+            <div><dt>Guard</dt><dd>The run ID matches the pending trial, the exit status is 0, and the weights were saved</dd></div>
+            <div><dt>Update</dt><dd>Record the training time and peak memory. Request a score under the trial's scoring ID.</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> Scoring leaves <code>train.py</code>: a pinned evaluator scores the saved weights.</p>
+        </div>
+        <div id="map-upstream-running-row-10" class="loop-map-detail" data-map-detail="10">
+          <p class="loop-map-row-title">Row 10 · Running → Ready</p>
+          <p class="loop-map-owner">Fired by: Process host</p>
+          <dl>
+            <div><dt>Event</dt><dd>Run failed (process host)</dd></div>
+            <div><dt>Guard</dt><dd>The run ID matches the pending trial</dd></div>
+            <div><dt>Update</dt><dd>Covers a nonzero exit, missing weights, or a kill at the 7-minute cap. Store the diff and log tail for a possible fix, charge the slot, and close the trial as a crash.</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> The process host enforces the time cap, not the agent.</p>
+        </div>
+      </section>
+      <section id="map-upstream-scoring" data-map-section="scoring" aria-label="Mode Scoring">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Scoring</p>
+        <p class="loop-map-about">A pinned evaluator scores the saved weights.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Scoring">
+          <li><button type="button" class="loop-map-row" data-map-row="11" aria-controls="map-upstream-scoring-row-11" disabled><span class="loop-map-row-number">11</span> Score → Ready</button></li>
+        </ul>
+        <div id="map-upstream-scoring-row-11" class="loop-map-detail" data-map-detail="11">
+          <p class="loop-map-row-title">Row 11 · Scoring → Ready</p>
+          <p class="loop-map-owner">Fired by: Pinned evaluator</p>
+          <dl>
+            <div><dt>Event</dt><dd>Score (pinned evaluator)</dd></div>
+            <div><dt>Guard</dt><dd>The score is for the pending trial and the causality check passed</dd></div>
+            <div><dt>Update</dt><dd>Charge the slot. If <code>val_bpb</code> is strictly lower than the incumbent's, record the candidate commit as the incumbent. Close the trial. After the checkpoint, set the branch to the incumbent commit.</dd></div>
+          </dl>
+          <p class="loop-map-note"><strong>Changed from Figure 1.</strong> Keep or reset is a row fired by the pinned evaluator, not a decision the agent writes.</p>
+        </div>
+      </section>
+      <section id="map-upstream-reconciling" data-map-section="reconciling" aria-label="Mode Reconciling">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Reconciling</p>
+        <p class="loop-map-note">Rows 14–20 keep their meaning, with the process host in place of the scheduler and the run ID in place of the operation ID. A lookup reports a run as done only if it exited with status 0 and saved weights.</p>
+      </section>
+    </div>
+  </div>
+  <ul class="loop-map-legend" aria-label="Legend">
+    <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>The policy chooses this edge</li>
+    <li><span class="loop-swatch" aria-hidden="true"></span>The gate, scheduler, evaluator, clock, or a controller rule fires it</li>
+    <li><span class="loop-swatch loop-swatch-stop" aria-hidden="true"></span>Hard stop from any mode in Search</li>
+    <li><span class="loop-swatch-group" aria-hidden="true"></span>An edge leaving a group applies to every mode in it</li>
+    <li><span class="loop-swatch loop-swatch-muted" aria-hidden="true"></span>Rows that keep their meaning</li>
+  </ul>
+</div>

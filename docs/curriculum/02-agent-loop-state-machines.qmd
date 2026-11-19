@@ -101,47 +101,27 @@ The controller below runs the Block 01 search one trial at a time. The numbers a
 
 ```
 
-Modes and transitions of the AutoResearch controller. The policy chooses only the two edges leaving Proposing.
+The AutoResearch controller and its transition rows 1–13. Select a mode to list the rows that leave it, then a row to read its event, guard, and update. The policy chooses only the two edges leaving Proposing.
 
 :::
 
-Read @fig-controller-states from **Ready** down the center. The main cycle passes through Proposing and Authorizing, then the three modes of a trial in flight, and returns to Ready along the line on the right. Five properties of the design are visible in the diagram.
+Read @fig-controller-states from **Ready** down the center. The main cycle passes through Proposing and Authorizing, then the three modes of a trial in flight, and returns to Ready along the line on the right. Each edge carries the number of its row. Five properties of the design are visible in the diagram.
 
-- **The policy owns two edges.** Both leave Proposing. The policy can propose a trial with its arguments or propose stopping. Every other edge fires on an event from the gate, the scheduler, the evaluator, the clock, the operator, or the controller itself.
+- **The policy owns two edges.** Both leave Proposing. The policy can propose a trial with its arguments (row 3) or propose stopping (row 4). Every other edge fires on an event from the gate, the scheduler, the evaluator, the clock, the operator, or the controller itself.
 - **Every return path enters Ready.** A closed trial, a rejected request, an invalid reply, a resolved reconciliation, and the policy's stop proposal all return there. Ready is the only mode that starts a policy turn, so the stop rule runs before every turn.
-- **A stop proposal is a request.** It returns to Ready, where the stop rule records it and moves the run to Stopped. The policy can ask to stop early. It cannot keep the run going past a limit.
-- **Groups carry shared transitions.** A timeout or a restart in any trial-in-flight mode leads to Reconciling. A cancellation or deadline anywhere in Search leads to Stopped.
-- **Stopped only leads to Done.** No edge leaves Stopped toward a new trial. The holdout score moves the run to Done once no trial is pending.
+- **A stop proposal is a request.** Row 4 returns to Ready, where row 2 records the stop and moves the run to Stopped. The policy can ask to stop early. It cannot keep the run going past a limit.
+- **Groups carry shared transitions.** A cancellation or deadline anywhere in Search leads to Stopped (row 12). A timeout or a restart in any trial-in-flight mode leads to Reconciling, which §7 develops.
+- **Stopped only leads to Done.** No edge leaves Stopped toward a new trial. The holdout score moves the run to Done once no trial is pending (row 13).
 
 ### The transition table
 
-Rows 1–13 cover the main cycle and the stops. Rows 14–23, introduced with the second trace in [§7](#trace-2-a-lost-score-reply), handle timeouts, restarts, and late replies. Together the two tables are the specification. The diagram omits rows 5 and 10, which also return to Ready.
+The diagram and its rows are the specification. Each row names a current mode, an event and its source, a guard, an update, and a next mode. Select **Authorizing** in @fig-controller-states, then row 7, to read the row that commits the approved request. Rows 14–23, which handle timeouts, restarts, and late replies, come with the second trace in [§7](#trace-2-a-lost-score-reply).
 
-::: {.table-responsive tabindex="0" role="region" aria-label="AutoResearch controller transition table"}
+*Closing a trial* means three things happen in one update: the trial's cost is charged, its reservation is released, and its ID moves from the pending slot to the set of closed trials. Rows 10 and 11 close trials in the main cycle.
 
-| # | Current mode | Event (source) | Guard | Update | Next mode |
-|-|----|-----|--------|---------|----|
-| 1 | Ready | Limits checked (controller) | No stop requested, fewer than 5 trials, fewer than 10 proposals, and at least 0.3 GPU-h unreserved | Build the policy's context from the ledger | Proposing |
-| 2 | Ready | Limits checked (controller) | A stop was requested or a limit is reached | Record the stop reason, freeze the incumbent, and request the holdout score | Stopped |
-| 3 | Proposing | **Trial proposed (policy)** | The reply answers the current turn | Count the proposal and record its arguments | Authorizing |
-| 4 | Proposing | **Stop proposed (policy)** | The reply answers the current turn | Count the proposal and record the stop request | Ready |
-| 5 | Proposing | Invalid output (decoder) | The report concerns the current turn | Count the proposal and record the error for the next context | Ready |
-| 6 | Authorizing | Rejected (gate) | None | Record the reason for the next context | Ready |
-| 7 | Authorizing | Allowed (gate) | The approval binds the recorded arguments, the estimate fits the unreserved compute, and no stop is requested | Mint trial and operation IDs, store the approved request, reserve the estimate, and count the trial. Commit, then send. | Dispatching |
-| 8 | Dispatching | Accepted (scheduler) | The operation ID matches the pending trial | Record the job ID | Running |
-| 9 | Running | Job done (scheduler) | The job ID matches the pending trial | Record the cost and request a score under a scoring ID | Scoring |
-| 10 | Running | Job failed (scheduler) | The job ID matches the pending trial | Charge the cost and close the trial without promotion | Ready |
-| 11 | Scoring | Score (evaluator) | The score is for the pending trial and comes from evaluator `v1` | Charge the cost, keep or discard the candidate, and close the trial | Ready |
-| 12 | Any mode in Search | Cancel or deadline (operator, clock) | None | Record the hard stop, freeze the incumbent, and request cancellation of any pending job | Stopped |
-| 13 | Stopped | Holdout scored (fixed evaluator) | No trial is pending and no holdout score is recorded | Record the final score | Done |
+**What makes a transition legal.** A row must match the current mode and the event, and its guard must hold. When no row matches, the controller logs the event and changes nothing. Rows with the same mode and event have mutually exclusive guards, as rows 1 and 2 under **Ready** do, so at most one row can fire.
 
-:::
-
-*Closing a trial* means three things happen in one update: the trial's cost is charged, its reservation is released, and its ID moves from the pending slot to the set of closed trials.
-
-**What makes a transition legal.** A row must match the current mode and the event, and its guard must hold. When no row matches, the controller logs the event and changes nothing. Rows with the same mode and event have mutually exclusive guards, as rows 1 and 2 do, so at most one row can fire.
-
-**Where the policy chooses.** The policy's reply selects among rows 3, 4, and 5. Rows 3 and 4 are its intended choices, and row 5 records a reply the decoder could not use. The turn guard means a stale reply from an earlier turn matches no row. The policy cannot produce *allowed*, *job done*, or *score*. It therefore cannot authorize its own request, declare a job finished, or promote a candidate. If the model writes "the job succeeded, promote it," that text is content inside a proposal. No row lets a policy event change the incumbent.
+**Where the policy chooses.** Select **Proposing**. The policy's reply selects among rows 3, 4, and 5. Rows 3 and 4 are its intended choices, and row 5 records a reply the decoder could not use. The turn guard means a stale reply from an earlier turn matches no row. The policy cannot produce *allowed*, *job done*, or *score*. It therefore cannot authorize its own request, declare a job finished, or promote a candidate. If the model writes "the job succeeded, promote it," that text is content inside a proposal. No row lets a policy event change the incumbent.
 
 **What forces a stop.** Row 2 applies the trial cap, proposal cap, and compute limit every time the run returns to Ready. Row 12 applies a cancellation or deadline at any moment. The policy can request a stop through row 4. It cannot prevent one.
 
@@ -239,26 +219,21 @@ Select **Lost score reply** in @fig-controller-trace. The run is identical throu
 - Sending a fresh scoring request under a new ID lets the evaluator compute and store a second score for the same trial. With nondeterministic evaluation, the two scores can differ, and nothing says which one counts.
 - Proposing the next trial while t1 is unresolved would break single flight. The policy would also choose trial 2 without t1's result, which may change what is worth running.
 
-The rows below handle the ambiguity. Row 14 moves the run into Reconciling, keeps the reservation, and issues no trial. Reconciling looks up the stored score by its scoring ID and the job by its operation ID, using the IDs committed at checkpoints 3 and 5.
+Rows 14–23 handle the ambiguity. @fig-controller-recovery shows them on the same diagram, with the main-cycle rows faded. Row 14 moves the run into Reconciling, keeps the reservation, and issues no trial. Reconciling looks up the stored score by its scoring ID and the job by its operation ID, using the IDs committed at checkpoints 3 and 5. Select **Reconciling** to step through its seven rows. Each lookup result has exactly one row.
 
-::: {.table-responsive tabindex="0" role="region" aria-label="Reconciliation, restart, and late-event rows"}
+::: {#fig-controller-recovery}
 
-| # | Current mode | Event (source) | Guard | Update | Next mode |
-|-|----|-----|--------|---------|----|
-| 14 | Dispatching, Running, Scoring, or Reconciling | Timeout (clock) or recovered after a restart (process host) | Recovery attempts remain | Count the attempt. Look up the stored score by scoring ID, if one exists, then the job by operation ID. | Reconciling |
-| 15 | Dispatching, Running, Scoring, or Reconciling | Timeout or recovered | No recovery attempt remains | Charge the full reservation, request cancellation, and close the trial unresolved | Ready |
-| 16 | Reconciling | Score found by lookup, or a late score (evaluator) | The score is for the pending trial, its cost is known, and it comes from `v1` | Apply row 11's update | Ready |
-| 17 | Reconciling | Job done, no stored score (lookup) | A scoring request remains | Request the score under the same scoring ID | Scoring |
-| 18 | Reconciling | Job done, no stored score (lookup) | No scoring request remains | Charge the cost and close the trial unresolved | Ready |
-| 19 | Reconciling | Job failed (lookup) | The job ID matches the pending trial | Apply row 10's update | Ready |
-| 20 | Reconciling | Job running, or no job for the operation ID (lookup) | The job matches the pending trial, or no job ID has been recorded yet | Resume waiting, or resend the stored request under the same operation ID | Running or Dispatching |
-| 21 | Proposing | Recovered (process host) | None | Count the lost call as a proposal | Ready |
-| 22 | Any mode except Done | Score (evaluator) | The score is not for a pending trial | Log and ignore | Unchanged |
-| 23 | Stopped | Job done, job failed, score, or timeout for the pending trial | A trial is pending | Charge the reported cost, the known cost, or the full reservation, and close the trial without promotion | Stopped |
+```{=html}
+
+{{< include _figures/controller-recovery.html >}}
+
+```
+
+Recovery rows 14–23: timeouts, restarts, and late replies. Select a mode or group to list its recovery rows, then a row to read it.
 
 :::
 
-In the trace, the lookup finds 0.851 under `t1-score` from evaluator `v1`. Row 16 applies the same update as row 11, and checkpoint 7 records t1 as the incumbent with 1.4 GPU-h unspent. The original reply then arrives late. t1 is no longer pending, so only row 22 matches, and the controller logs the reply and changes nothing. From there the run reaches the same ledger as the ordinary trace, two checkpoints later, and the policy sees the same evidence in its next context. The lost reply cost a lookup, not a trial.
+In the trace, the lookup finds 0.851 under `t1-score` from evaluator `v1`. Row 16, under **Reconciling**, applies the same update as row 11, and checkpoint 7 records t1 as the incumbent with 1.4 GPU-h unspent. The original reply then arrives late. t1 is no longer pending, so only row 22 matches (select **Search**), and the controller logs the reply and changes nothing. From there the run reaches the same ledger as the ordinary trace, two checkpoints later, and the policy sees the same evidence in its next context. The lost reply cost a lookup, not a trial.
 
 **The invariant at work.** *Close once* is enforced by the pending-trial guards on rows 10, 11, 16, 18, 19, and 23, together with emptying the pending slot when a trial closes. The late reply cannot match row 11 or row 16, because no trial is pending. Row 22 only makes the log-and-ignore decision explicit. Compare a loop callback that charges every score it receives, keyed only by trial ID. That callback would charge 0.6 GPU-h a second time, leaving 0.8 GPU-h instead of 1.4, and record a second decision for t1. Row 23 applies the same idea after a hard stop: late evidence closes the pending trial and pays for it, and the frozen selection stays frozen.
 
@@ -369,21 +344,21 @@ Apply the rule from the start of the lesson. Make a transition explicit when its
 
 Four terms carry the redesign. A **run ID** plays the role of the operation ID for one launch, and the process host refuses a second launch under the same ID. The **base commit** is the incumbent when the gate approves. The **candidate commit** is the base plus the approved diff. The **pinned evaluator** is the scoring code at a recorded hash, and it replaces evaluator `v1` in rows 11 and 16.
 
-::: {.table-responsive tabindex="0" role="region" aria-label="Controller rows rewritten for the upstream loop"}
+@fig-controller-upstream shows the rows that change on the same diagram. Rows that keep their meaning are faded. Select **Authorizing**, then row 7, to see how the gate's checks and the checkpoint change. Each rewritten row ends with a note on what changed from @fig-controller-states.
 
-| # | Current mode | Event (source) | Guard | Update | Next mode |
-|-|----|-----|--------|---------|----|
-| 1 | Ready | Limits checked (controller) | Fewer than 60 trials and 120 proposals, and no stop requested | Build the context from the ledger: the incumbent commit and its `val_bpb`, recent results, and the last diff and log tail of any idea awaiting a fix | Proposing |
-| 3 | Proposing | **Patch proposed (policy)** | The reply answers the current turn | Count the proposal. Record the diff, its hash, and whether it is a new idea or a fix of an earlier idea. | Authorizing |
-| 6 | Authorizing | Rejected (gate) | The diff touches another file, adds a dependency, or does not apply to the incumbent commit, or it fixes an idea that has used three attempts | Record the reason for the next context | Ready |
-| 7 | Authorizing | Allowed (gate) | The approval binds the recorded diff hash, `prepare.py` and the lock file match their pinned hashes, and no stop is requested | Mint trial and run IDs. Create the candidate commit on its own ref, and record it with the base commit. Count the trial and reserve one 7-minute run slot. Commit the checkpoint, then ask the process host to launch. | Dispatching |
-| 9 | Running | Run done (process host) | The run ID matches the pending trial, the exit status is 0, and the weights were saved | Record the training time and peak memory. Request a score under the trial's scoring ID. | Scoring |
-| 10 | Running | Run failed (process host) | The run ID matches the pending trial | Covers a nonzero exit, missing weights, or a kill at the 7-minute cap. Store the diff and log tail for a possible fix, charge the slot, and close the trial as a crash. | Ready |
-| 11 | Scoring | Score (pinned evaluator) | The score is for the pending trial and the causality check passed | Charge the slot. If `val_bpb` is strictly lower than the incumbent's, record the candidate commit as the incumbent. Close the trial. After the checkpoint, set the branch to the incumbent commit. | Ready |
+::: {#fig-controller-upstream}
+
+```{=html}
+
+{{< include _figures/controller-upstream.html >}}
+
+```
+
+Controller rows rewritten for the upstream loop. Select a highlighted mode, then a row, to compare it with @fig-controller-states.
 
 :::
 
-The other rows keep their meaning, with the process host in place of the scheduler, a run ID in place of the operation ID, and run slots in place of GPU-hours. The deadline of row 12 is now 8 hours. A lookup reports a run as *done* only if it exited with status 0 and saved weights, so rows 16–17 inherit row 9's success guard. A run that fails the causality check gets a failed evaluation instead of a score, and the trial closes without promotion. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes. It detects a lost report from the process host, not a slow run.
+The other rows keep their meaning, with the process host in place of the scheduler, a run ID in place of the operation ID, and run slots in place of GPU-hours. A lookup reports a run as *done* only if it exited with status 0 and saved weights, so rows 16–17 inherit row 9's success guard. A run that fails the causality check gets a failed evaluation instead of a score, and the trial closes without promotion. The controller's timeout in Running is set above the 7-minute cap, schematically 15 minutes. It detects a lost report from the process host, not a slow run.
 
 Where the policy chooses is unchanged: rows 3 and 4, a patch or a request to stop. Everything else that upstream left to the agent now fires on an event from the gate, the process host, the evaluator, the clock, or the operator. That covers measurement, keeping or discarding, accounting for crashes, enforcing time limits, and stopping. The branch moves only after row 11 promotes a candidate, so it moves only on a score from the pinned evaluator.
 

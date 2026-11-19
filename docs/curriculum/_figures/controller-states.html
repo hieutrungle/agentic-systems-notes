@@ -1,85 +1,285 @@
-<div class="agent-animation loop-states">
-  <div class="loop-states-layout">
-    <svg class="loop-states-diagram" viewBox="0 0 330 614" role="img" aria-labelledby="loop-states-title loop-states-desc">
-      <title id="loop-states-title">AutoResearch controller modes and transitions</title>
-      <desc id="loop-states-desc">The main cycle runs down the center: Ready, Proposing, Authorizing, then Dispatching, Running, and Scoring inside a group labeled Trial in flight. The policy owns two edges from Proposing: trial proposed leads to Authorizing, and stop proposed returns to Ready. Rejected, scored, and resolved also return to Ready along a line on the right. A timeout or restart in any trial-in-flight mode leads to Reconciling, which can resume the trial or resolve it back to Ready. From Ready, the stop rule leads to Stopped. Cancel or deadline from any mode in the Search group also leads to Stopped. Holdout scored leads from Stopped to Done.</desc>
-      <defs>
-        <marker id="loop-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/>
-        </marker>
-        <marker id="loop-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/>
-        </marker>
-      </defs>
-
-      <rect class="loop-group" x="80" y="74" width="244" height="532" rx="10"/>
-      <text class="loop-group-label" x="318" y="92" text-anchor="end">Search</text>
-      <rect class="loop-group loop-group-inner" x="84" y="304" width="184" height="212" rx="9"/>
-      <text class="loop-group-label" x="262" y="320" text-anchor="end">Trial in flight</text>
-
-      <g class="loop-edges" marker-end="url(#loop-arrow)">
-        <path d="M154 134V166"/>
-        <path d="M154 278V326"/>
-        <path d="M154 366V398"/>
-        <path d="M154 438V470"/>
-        <path d="M294 579V115H214"/>
-        <path d="M174 516V558"/>
-        <path d="M134 558V519"/>
-        <path d="M154 96V52"/>
-        <path d="M96 31H76"/>
-        <path class="loop-edge-stop" d="M262 74V31H214"/>
-      </g>
-      <g class="loop-edges">
-        <path d="M212 259H294"/>
-        <path d="M212 491H294"/>
-        <path d="M212 579H294"/>
-      </g>
-      <g class="loop-edges loop-edges-policy">
-        <path d="M154 206V238" marker-end="url(#loop-arrow-policy)"/>
-        <path d="M212 187H294"/>
-      </g>
-
-      <g class="loop-edge-labels">
-        <text x="162" y="154">under limits</text>
-        <text class="loop-policy-label" x="162" y="226">trial proposed</text>
-        <text x="162" y="296">allowed</text>
-        <text x="162" y="386">accepted</text>
-        <text x="162" y="458">job done</text>
-        <text class="loop-policy-label" x="256" y="167" text-anchor="middle">stop</text>
-        <text class="loop-policy-label" x="256" y="181" text-anchor="middle">proposed</text>
-        <text x="253" y="253" text-anchor="middle">rejected</text>
-        <text x="240" y="485" text-anchor="middle">scored</text>
-        <text x="253" y="573" text-anchor="middle">resolved</text>
-        <text x="128" y="541" text-anchor="end">resume</text>
-        <text x="180" y="534">timeout or</text>
-        <text x="180" y="548">restart</text>
-        <text x="162" y="66">stop rule</text>
-        <text x="40" y="68" text-anchor="middle">holdout</text>
-        <text x="40" y="82" text-anchor="middle">scored</text>
-        <text class="loop-stop-label" x="268" y="48">cancel or</text>
-        <text class="loop-stop-label" x="268" y="62">deadline</text>
-      </g>
-
-      <g class="loop-node loop-node-terminal"><rect x="6" y="12" width="68" height="38" rx="7"/><text x="40" y="36">Done</text></g>
-      <g class="loop-node"><rect x="96" y="12" width="116" height="38" rx="7"/><text x="154" y="36">Stopped</text></g>
-      <g class="loop-node"><rect x="96" y="96" width="116" height="38" rx="7"/><text x="154" y="120">Ready</text></g>
-      <g class="loop-node loop-node-policy"><rect x="96" y="168" width="116" height="38" rx="7"/><text x="154" y="192">Proposing</text></g>
-      <g class="loop-node loop-node-gate"><rect x="96" y="240" width="116" height="38" rx="7"/><text x="154" y="264">Authorizing</text></g>
-      <g class="loop-node"><rect x="96" y="328" width="116" height="38" rx="7"/><text x="154" y="352">Dispatching</text></g>
-      <g class="loop-node"><rect x="96" y="400" width="116" height="38" rx="7"/><text x="154" y="424">Running</text></g>
-      <g class="loop-node"><rect x="96" y="472" width="116" height="38" rx="7"/><text x="154" y="496">Scoring</text></g>
-      <g class="loop-node"><rect x="96" y="560" width="116" height="38" rx="7"/><text x="154" y="584">Reconciling</text></g>
-    </svg>
-    <div class="loop-states-key">
-      <p class="loop-key-title">Reading the diagram</p>
-      <ul>
-        <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>The policy chooses this edge.</li>
-        <li><span class="loop-swatch" aria-hidden="true"></span>The gate, scheduler, evaluator, clock, or a controller rule fires this edge.</li>
-        <li><span class="loop-swatch loop-swatch-stop" aria-hidden="true"></span>A hard stop leaves the Search group from any mode inside it.</li>
-        <li><span class="loop-swatch-group" aria-hidden="true"></span>An edge leaving a group applies to every mode in the group.</li>
-      </ul>
-      <p>Every return path enters Ready. The stop rule runs there before each policy turn.</p>
-      <p>Invalid output and failed jobs also return to Ready. The transition table lists them.</p>
+<div class="agent-animation loop-map loop-map-main" data-controller-map data-default-mode="ready" data-default-row="1">
+  <p class="loop-map-hint" data-map-hint hidden>Select a mode or group, then one of its rows.</p>
+  <div class="loop-map-layout">
+    <div class="loop-map-graph" role="group" aria-label="AutoResearch controller: modes and transition rows 1–13" aria-describedby="map-main-desc">
+      <p id="map-main-desc" class="visually-hidden">Ready sits at the top of the Search group. Under limits, row 1 leads to Proposing. The policy owns two edges from Proposing: trial proposed (row 3) leads to Authorizing, and stop proposed (row 4) returns to Ready. Allowed (row 7) leads into the Trial in flight group: Dispatching, Running, and Scoring, linked by accepted (row 8) and job done (row 9). Rejected, job failed, scored, invalid output, and resolved return to Ready along a line on the right. Row 2 leads from Ready to Stopped, row 12 leads from anywhere in Search to Stopped, and row 13 leads from Stopped to Done.</p>
+      <svg class="loop-map-wires" viewBox="0 0 440 650" aria-hidden="true">
+        <defs>
+          <marker id="map-main-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--loop-wire)"/></marker>
+          <marker id="map-main-arrow-policy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
+          <marker id="map-main-arrow-active" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" fill="var(--agent-accent)"/></marker>
+        </defs>
+        <rect class="loop-group" x="96" y="80" width="336" height="562" rx="10"/>
+        <rect class="loop-group loop-group-inner" x="100" y="322" width="200" height="226" rx="9"/>
+        <path class="loop-map-edge" d="M170 138V174" data-rows="1" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="178" y="160" text-anchor="start" data-rows="1">under limits (1)</text>
+        <path class="loop-map-edge" d="M170 100V54" data-rows="2" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="178" y="76" text-anchor="start" data-rows="2">stop rule (2)</text>
+        <path class="loop-map-edge is-policy" d="M170 214V250" data-rows="3" marker-end="url(#map-main-arrow-policy)"/>
+        <text class="loop-map-label is-policy" x="178" y="236" text-anchor="start" data-rows="3">trial proposed (3)</text>
+        <path class="loop-map-edge is-policy" d="M230 195H410" data-rows="4 5 21"/>
+        <text class="loop-map-label is-policy" x="355" y="188" text-anchor="middle" data-rows="4">stop proposed (4)</text>
+        <text class="loop-map-label" x="355" y="209" text-anchor="middle" data-rows="5">invalid output (5)</text>
+        <path class="loop-map-edge" d="M230 271H410" data-rows="6"/>
+        <text class="loop-map-label" x="355" y="265" text-anchor="middle" data-rows="6">rejected (6)</text>
+        <path class="loop-map-edge" d="M170 290V344" data-rows="7" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="178" y="312" text-anchor="start" data-rows="7">allowed (7)</text>
+        <path class="loop-map-edge" d="M170 384V420" data-rows="8" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="178" y="406" text-anchor="start" data-rows="8">accepted (8)</text>
+        <path class="loop-map-edge" d="M170 460V496" data-rows="9" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="178" y="482" text-anchor="start" data-rows="9">job done (9)</text>
+        <path class="loop-map-edge" d="M230 441H410" data-rows="10"/>
+        <text class="loop-map-label" x="355" y="435" text-anchor="middle" data-rows="10">job failed (10)</text>
+        <path class="loop-map-edge" d="M230 517H410" data-rows="11"/>
+        <text class="loop-map-label" x="355" y="511" text-anchor="middle" data-rows="11">scored (11)</text>
+        <path class="loop-map-edge is-muted" d="M230 615H410" data-rows="15 16 18 19"/>
+        <text class="loop-map-label is-muted" x="355" y="609" text-anchor="middle" data-rows="15 16 18 19">resolved</text>
+        <text class="loop-map-label is-muted" x="355" y="630" text-anchor="middle" data-rows="15 16 18 19">(15, 16, 18, 19)</text>
+        <path class="loop-map-edge" d="M410 615V119H232" data-rows="4 5 6 10 11 15 16 18 19 21" marker-end="url(#map-main-arrow)"/>
+        <path class="loop-map-edge is-stop" d="M400 80V33H232" data-rows="12" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label is-stop" x="316" y="25" text-anchor="middle" data-rows="12">cancel or deadline (12)</text>
+        <path class="loop-map-edge" d="M110 33H88" data-rows="13" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label" x="50" y="70" text-anchor="middle" data-rows="13">holdout</text>
+        <text class="loop-map-label" x="50" y="84" text-anchor="middle" data-rows="13">scored (13)</text>
+        <path class="loop-map-edge is-muted" d="M210 548V594" data-rows="14" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label is-muted" x="218" y="566" text-anchor="start" data-rows="14">timeout or</text>
+        <text class="loop-map-label is-muted" x="218" y="580" text-anchor="start" data-rows="14">restart (14)</text>
+        <path class="loop-map-edge is-muted" d="M130 596V550" data-rows="17 20" marker-end="url(#map-main-arrow)"/>
+        <text class="loop-map-label is-muted" x="136" y="566" text-anchor="start" data-rows="17 20">resume</text>
+        <text class="loop-map-label is-muted" x="136" y="580" text-anchor="start" data-rows="17 20">(17, 20)</text>
+      </svg>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 14; --w: 120; --h: 38" aria-controls="map-main-stopped" data-map-mode="stopped" disabled>Stopped</button>
+      <button type="button" class="loop-map-node is-terminal is-muted" style="--x: 14; --y: 14; --w: 72; --h: 38" aria-controls="map-main-done" data-map-mode="done" disabled>Done</button>
+      <button type="button" class="loop-map-node is-group" style="--x: 352; --y: 86; --w: 74; --h: 26" aria-controls="map-main-search" data-map-mode="search" disabled>Search</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 100; --w: 120; --h: 38" aria-controls="map-main-ready" data-map-mode="ready" disabled>Ready</button>
+      <button type="button" class="loop-map-node is-policy" style="--x: 110; --y: 176; --w: 120; --h: 38" aria-controls="map-main-proposing" data-map-mode="proposing" disabled>Proposing</button>
+      <button type="button" class="loop-map-node is-gate" style="--x: 110; --y: 252; --w: 120; --h: 38" aria-controls="map-main-authorizing" data-map-mode="authorizing" disabled>Authorizing</button>
+      <button type="button" class="loop-map-node is-group is-muted" style="--x: 236; --y: 326; --w: 60; --h: 34" aria-controls="map-main-flight" data-map-mode="flight" disabled>Trial in flight</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 346; --w: 120; --h: 38" aria-controls="map-main-dispatching" data-map-mode="dispatching" disabled>Dispatching</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 422; --w: 120; --h: 38" aria-controls="map-main-running" data-map-mode="running" disabled>Running</button>
+      <button type="button" class="loop-map-node" style="--x: 110; --y: 498; --w: 120; --h: 38" aria-controls="map-main-scoring" data-map-mode="scoring" disabled>Scoring</button>
+      <button type="button" class="loop-map-node is-muted" style="--x: 110; --y: 596; --w: 120; --h: 38" aria-controls="map-main-reconciling" data-map-mode="reconciling" disabled>Reconciling</button>
+    </div>
+    <div class="loop-map-info" data-map-info>
+      <section id="map-main-stopped" data-map-section="stopped" aria-label="Mode Stopped">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Stopped</p>
+        <p class="loop-map-about">The search is over. No edge leads back to a new trial.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Stopped">
+          <li><button type="button" class="loop-map-row" data-map-row="13" aria-controls="map-main-stopped-row-13" disabled><span class="loop-map-row-number">13</span> Holdout scored → Done</button></li>
+        </ul>
+        <div id="map-main-stopped-row-13" class="loop-map-detail" data-map-detail="13">
+          <p class="loop-map-row-title">Row 13 · Stopped → Done</p>
+          <p class="loop-map-owner">Fired by: Fixed evaluator</p>
+          <dl>
+            <div><dt>Event</dt><dd>Holdout scored (fixed evaluator)</dd></div>
+            <div><dt>Guard</dt><dd>No trial is pending and no holdout score is recorded</dd></div>
+            <div><dt>Update</dt><dd>Record the final score</dd></div>
+          </dl>
+          <p class="loop-map-note">The only edge out of Stopped. The holdout score enters the record only here.</p>
+        </div>
+      </section>
+      <section id="map-main-done" data-map-section="done" aria-label="Mode Done">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Done</p>
+        <p class="loop-map-note">Terminal mode. No row leaves Done.</p>
+      </section>
+      <section id="map-main-search" data-map-section="search" aria-label="Group Search">
+        <p class="loop-map-kind">Group</p>
+        <p class="loop-map-title">Search</p>
+        <p class="loop-map-about">Every mode inside the large group, from Ready to Reconciling.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Search">
+          <li><button type="button" class="loop-map-row" data-map-row="12" aria-controls="map-main-search-row-12" disabled><span class="loop-map-row-number">12</span> Cancel or deadline → Stopped</button></li>
+        </ul>
+        <div id="map-main-search-row-12" class="loop-map-detail" data-map-detail="12">
+          <p class="loop-map-row-title">Row 12 · Any mode in Search → Stopped</p>
+          <p class="loop-map-owner">Fired by: Operator or clock</p>
+          <dl>
+            <div><dt>Event</dt><dd>Cancel or deadline (operator, clock)</dd></div>
+            <div><dt>Guard</dt><dd>None</dd></div>
+            <div><dt>Update</dt><dd>Record the hard stop, freeze the incumbent, and request cancellation of any pending job</dd></div>
+          </dl>
+          <p class="loop-map-note">Applies at any moment in the search. The policy cannot prevent it.</p>
+        </div>
+      </section>
+      <section id="map-main-ready" data-map-section="ready" aria-label="Mode Ready">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Ready</p>
+        <p class="loop-map-about">The only mode that starts a policy turn. The stop rule runs here every time.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Ready">
+          <li><button type="button" class="loop-map-row" data-map-row="1" aria-controls="map-main-ready-row-1" disabled><span class="loop-map-row-number">1</span> Limits checked → Proposing</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="2" aria-controls="map-main-ready-row-2" disabled><span class="loop-map-row-number">2</span> Limits checked → Stopped</button></li>
+        </ul>
+        <div id="map-main-ready-row-1" class="loop-map-detail" data-map-detail="1">
+          <p class="loop-map-row-title">Row 1 · Ready → Proposing</p>
+          <p class="loop-map-owner">Fired by: Controller rule</p>
+          <dl>
+            <div><dt>Event</dt><dd>Limits checked (controller)</dd></div>
+            <div><dt>Guard</dt><dd>No stop requested, fewer than 5 trials, fewer than 10 proposals, and at least 0.3 GPU-h unreserved</dd></div>
+            <div><dt>Update</dt><dd>Build the policy's context from the ledger</dd></div>
+          </dl>
+          <p class="loop-map-note">Ready is the only mode that starts a policy turn, so this check runs before every turn.</p>
+        </div>
+        <div id="map-main-ready-row-2" class="loop-map-detail" data-map-detail="2">
+          <p class="loop-map-row-title">Row 2 · Ready → Stopped</p>
+          <p class="loop-map-owner">Fired by: Controller rule</p>
+          <dl>
+            <div><dt>Event</dt><dd>Limits checked (controller)</dd></div>
+            <div><dt>Guard</dt><dd>A stop was requested or a limit is reached</dd></div>
+            <div><dt>Update</dt><dd>Record the stop reason, freeze the incumbent, and request the holdout score</dd></div>
+          </dl>
+          <p class="loop-map-note">Rows 1 and 2 share a mode and an event. Their guards exclude each other, so exactly one fires.</p>
+        </div>
+      </section>
+      <section id="map-main-proposing" data-map-section="proposing" aria-label="Mode Proposing">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Proposing</p>
+        <p class="loop-map-about">The policy's turn. Both policy-owned edges leave from here.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Proposing">
+          <li><button type="button" class="loop-map-row is-policy" data-map-row="3" aria-controls="map-main-proposing-row-3" disabled><span class="loop-map-row-number">3</span> Trial proposed → Authorizing</button></li>
+          <li><button type="button" class="loop-map-row is-policy" data-map-row="4" aria-controls="map-main-proposing-row-4" disabled><span class="loop-map-row-number">4</span> Stop proposed → Ready</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="5" aria-controls="map-main-proposing-row-5" disabled><span class="loop-map-row-number">5</span> Invalid output → Ready</button></li>
+        </ul>
+        <div id="map-main-proposing-row-3" class="loop-map-detail" data-map-detail="3">
+          <p class="loop-map-row-title">Row 3 · Proposing → Authorizing</p>
+          <p class="loop-map-owner is-policy">Fired by: Policy</p>
+          <dl>
+            <div><dt>Event</dt><dd>Trial proposed (policy)</dd></div>
+            <div><dt>Guard</dt><dd>The reply answers the current turn</dd></div>
+            <div><dt>Update</dt><dd>Count the proposal and record its arguments</dd></div>
+          </dl>
+          <p class="loop-map-note">One of the policy's two choices. A stale reply from an earlier turn fails the guard and matches no row.</p>
+        </div>
+        <div id="map-main-proposing-row-4" class="loop-map-detail" data-map-detail="4">
+          <p class="loop-map-row-title">Row 4 · Proposing → Ready</p>
+          <p class="loop-map-owner is-policy">Fired by: Policy</p>
+          <dl>
+            <div><dt>Event</dt><dd>Stop proposed (policy)</dd></div>
+            <div><dt>Guard</dt><dd>The reply answers the current turn</dd></div>
+            <div><dt>Update</dt><dd>Count the proposal and record the stop request</dd></div>
+          </dl>
+          <p class="loop-map-note">A stop proposal is a request. Row 2 acts on it in Ready. The policy can ask to stop early, but it cannot keep the run going past a limit.</p>
+        </div>
+        <div id="map-main-proposing-row-5" class="loop-map-detail" data-map-detail="5">
+          <p class="loop-map-row-title">Row 5 · Proposing → Ready</p>
+          <p class="loop-map-owner">Fired by: Decoder</p>
+          <dl>
+            <div><dt>Event</dt><dd>Invalid output (decoder)</dd></div>
+            <div><dt>Guard</dt><dd>The report concerns the current turn</dd></div>
+            <div><dt>Update</dt><dd>Count the proposal and record the error for the next context</dd></div>
+          </dl>
+          <p class="loop-map-note">A reply the decoder cannot use, or one that misses its deadline, still counts against the 10-proposal cap.</p>
+        </div>
+      </section>
+      <section id="map-main-authorizing" data-map-section="authorizing" aria-label="Mode Authorizing">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Authorizing</p>
+        <p class="loop-map-about">The gate checks the proposal. Nothing has been sent yet.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Authorizing">
+          <li><button type="button" class="loop-map-row" data-map-row="6" aria-controls="map-main-authorizing-row-6" disabled><span class="loop-map-row-number">6</span> Rejected → Ready</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="7" aria-controls="map-main-authorizing-row-7" disabled><span class="loop-map-row-number">7</span> Allowed → Dispatching</button></li>
+        </ul>
+        <div id="map-main-authorizing-row-6" class="loop-map-detail" data-map-detail="6">
+          <p class="loop-map-row-title">Row 6 · Authorizing → Ready</p>
+          <p class="loop-map-owner">Fired by: Gate</p>
+          <dl>
+            <div><dt>Event</dt><dd>Rejected (gate)</dd></div>
+            <div><dt>Guard</dt><dd>None</dd></div>
+            <div><dt>Update</dt><dd>Record the reason for the next context</dd></div>
+          </dl>
+          <p class="loop-map-note">Nothing was sent. The policy sees the reason on its next turn.</p>
+        </div>
+        <div id="map-main-authorizing-row-7" class="loop-map-detail" data-map-detail="7">
+          <p class="loop-map-row-title">Row 7 · Authorizing → Dispatching</p>
+          <p class="loop-map-owner">Fired by: Gate</p>
+          <dl>
+            <div><dt>Event</dt><dd>Allowed (gate)</dd></div>
+            <div><dt>Guard</dt><dd>The approval binds the recorded arguments, the estimate fits the unreserved compute, and no stop is requested</dd></div>
+            <div><dt>Update</dt><dd>Mint trial and operation IDs, store the approved request, reserve the estimate, and count the trial. Commit, then send.</dd></div>
+          </dl>
+          <p class="loop-map-note">Commit before sending. A crash after the commit leaves evidence that the request may have been sent. The text below explains why.</p>
+        </div>
+      </section>
+      <section id="map-main-flight" data-map-section="flight" aria-label="Group Trial in flight">
+        <p class="loop-map-kind">Group</p>
+        <p class="loop-map-title">Trial in flight</p>
+        <p class="loop-map-note">A timeout or restart in any of these modes goes to Reconciling. Rows 14 and 15 handle it, with the second trace in §7.</p>
+      </section>
+      <section id="map-main-dispatching" data-map-section="dispatching" aria-label="Mode Dispatching">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Dispatching</p>
+        <p class="loop-map-about">The approved request may have left the process.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Dispatching">
+          <li><button type="button" class="loop-map-row" data-map-row="8" aria-controls="map-main-dispatching-row-8" disabled><span class="loop-map-row-number">8</span> Accepted → Running</button></li>
+        </ul>
+        <div id="map-main-dispatching-row-8" class="loop-map-detail" data-map-detail="8">
+          <p class="loop-map-row-title">Row 8 · Dispatching → Running</p>
+          <p class="loop-map-owner">Fired by: Scheduler</p>
+          <dl>
+            <div><dt>Event</dt><dd>Accepted (scheduler)</dd></div>
+            <div><dt>Guard</dt><dd>The operation ID matches the pending trial</dd></div>
+            <div><dt>Update</dt><dd>Record the job ID</dd></div>
+          </dl>
+        </div>
+      </section>
+      <section id="map-main-running" data-map-section="running" aria-label="Mode Running">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Running</p>
+        <p class="loop-map-about">The scheduler has accepted the job.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Running">
+          <li><button type="button" class="loop-map-row" data-map-row="9" aria-controls="map-main-running-row-9" disabled><span class="loop-map-row-number">9</span> Job done → Scoring</button></li>
+          <li><button type="button" class="loop-map-row" data-map-row="10" aria-controls="map-main-running-row-10" disabled><span class="loop-map-row-number">10</span> Job failed → Ready</button></li>
+        </ul>
+        <div id="map-main-running-row-9" class="loop-map-detail" data-map-detail="9">
+          <p class="loop-map-row-title">Row 9 · Running → Scoring</p>
+          <p class="loop-map-owner">Fired by: Scheduler</p>
+          <dl>
+            <div><dt>Event</dt><dd>Job done (scheduler)</dd></div>
+            <div><dt>Guard</dt><dd>The job ID matches the pending trial</dd></div>
+            <div><dt>Update</dt><dd>Record the cost and request a score under a scoring ID</dd></div>
+          </dl>
+        </div>
+        <div id="map-main-running-row-10" class="loop-map-detail" data-map-detail="10">
+          <p class="loop-map-row-title">Row 10 · Running → Ready</p>
+          <p class="loop-map-owner">Fired by: Scheduler</p>
+          <dl>
+            <div><dt>Event</dt><dd>Job failed (scheduler)</dd></div>
+            <div><dt>Guard</dt><dd>The job ID matches the pending trial</dd></div>
+            <div><dt>Update</dt><dd>Charge the cost and close the trial without promotion</dd></div>
+          </dl>
+          <p class="loop-map-note">Closing a trial charges its cost, releases its reservation, and moves its ID from the pending slot to the closed set, all in one update.</p>
+        </div>
+      </section>
+      <section id="map-main-scoring" data-map-section="scoring" aria-label="Mode Scoring">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Scoring</p>
+        <p class="loop-map-about">The job finished, and a score is requested.</p>
+        <ul class="loop-map-rows" aria-label="Rows from Scoring">
+          <li><button type="button" class="loop-map-row" data-map-row="11" aria-controls="map-main-scoring-row-11" disabled><span class="loop-map-row-number">11</span> Score → Ready</button></li>
+        </ul>
+        <div id="map-main-scoring-row-11" class="loop-map-detail" data-map-detail="11">
+          <p class="loop-map-row-title">Row 11 · Scoring → Ready</p>
+          <p class="loop-map-owner">Fired by: Evaluator</p>
+          <dl>
+            <div><dt>Event</dt><dd>Score (evaluator)</dd></div>
+            <div><dt>Guard</dt><dd>The score is for the pending trial and comes from evaluator <code>v1</code></dd></div>
+            <div><dt>Update</dt><dd>Charge the cost, keep or discard the candidate, and close the trial</dd></div>
+          </dl>
+          <p class="loop-map-note">Promotion happens only here and in row 16. The policy cannot produce a score event, so it cannot promote a candidate.</p>
+        </div>
+      </section>
+      <section id="map-main-reconciling" data-map-section="reconciling" aria-label="Mode Reconciling">
+        <p class="loop-map-kind">Mode</p>
+        <p class="loop-map-title">Reconciling</p>
+        <p class="loop-map-note">Reconciling resolves timeouts, restarts, and late replies. Rows 14–20 come with the second trace in §7.</p>
+      </section>
     </div>
   </div>
+  <ul class="loop-map-legend" aria-label="Legend">
+    <li><span class="loop-swatch loop-swatch-policy" aria-hidden="true"></span>The policy chooses this edge</li>
+    <li><span class="loop-swatch" aria-hidden="true"></span>The gate, scheduler, evaluator, clock, or a controller rule fires it</li>
+    <li><span class="loop-swatch loop-swatch-stop" aria-hidden="true"></span>Hard stop from any mode in Search</li>
+    <li><span class="loop-swatch-group" aria-hidden="true"></span>An edge leaving a group applies to every mode in it</li>
+    <li><span class="loop-swatch loop-swatch-muted" aria-hidden="true"></span>Rows introduced in §7</li>
+  </ul>
 </div>
