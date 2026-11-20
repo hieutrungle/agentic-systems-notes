@@ -145,7 +145,7 @@ The equations describe one turn we've already seen in @fig-agent-control-progres
 
 The same symbols work for AutoResearch. The goal $g$ is to improve the score within budget. Whether job #42 has finished is part of the world state $x_t$. The latest report the runtime has received is its observation $o_t$. Its ledger is $z_t$.
 
-The next three lines show how the runtime prepares the input, gets a proposal, and checks permission.
+Two action sets matter on turn $t$. The **available action set** $\mathcal A_t^{\mathrm{avail}}$ contains the choices the runtime offers the model. The **authorized action set** $\mathcal A_t^{\mathrm{auth}}$ contains the requests this run has permission to make, including limits on which resources it can affect. For example, the model might see a “cancel job” tool. If the run can cancel only its own jobs and the model asks to cancel another run’s job, the gate rejects that request.
 
 $$
 \begin{aligned}
@@ -156,10 +156,10 @@ v_t &= \Gamma(\tilde a_t,z_t,\mathcal A_t^{\mathrm{auth}},\rho_t)
 $$
 
 1. **Prepare.** $\phi$ combines the goal, the ledger, and the latest report into the context $c_t$ that the model sees.
-2. **Propose.** The policy $\pi_\theta$ uses that context to propose one of the choices available on this turn, $\mathcal A_t^{\mathrm{avail}}$.
-3. **Check.** The gate $\Gamma$ checks the proposal against the permitted operations $\mathcal A_t^{\mathrm{auth}}$ and current conditions $\rho_t$, such as budget or human approval. It can approve the exact request $a_t^{\mathrm{auth}}$, reject it, or pause for review.
+2. **Propose.** The policy $\pi_\theta$ uses that context and the available choices to produce a specific request $\tilde a_t$.
+3. **Check.** The gate $\Gamma$ checks the requested operation and its arguments against the run’s permissions and current conditions $\rho_t$, such as remaining budget or required human approval. Its decision $v_t$ can approve the exact request $a_t^{\mathrm{auth}}$, reject it, or pause for review.
 
-Even after approval, the runtime may have an incomplete record. Suppose the scheduler starts job #42 but its reply gets lost. The job started ($u_t$), yet the runtime sees a timeout. Before retrying, it can check with the scheduler or reuse a request ID that the scheduler recognizes as a duplicate. If two jobs can spend the same budget, the service must also check the balance when it reserves the computing time.
+The runtime keeps an **execution record** $\mathrm{rec}_t$ for each proposal. It records the gate’s decision, whether the executor sent the request, and any receipt or timeout. Suppose the scheduler starts job #42 but its reply gets lost. The record says “approved, sent, reply timed out.” The job started ($u_t$), but the runtime still needs evidence of that. Before retrying, it can check with the scheduler or reuse a request ID that the scheduler recognizes as a duplicate. If two jobs can spend the same budget, the service must also check the balance when it reserves the computing time.
 
 The next four lines follow what happens after the request. The world changes, evidence may arrive, the runtime updates its record, and it decides whether to continue.
 
@@ -167,14 +167,14 @@ $$
 \begin{aligned}
 x_{t+1} &\sim P(\cdot\mid x_t,u_t) \\
 o_{t+1} &\sim O(\cdot\mid x_{t+1},u_t) \\
-z_{t+1} &= U(z_t,\tilde a_t,e_t,o_{t+1}) \\
+z_{t+1} &= U(z_t,\tilde a_t,\mathrm{rec}_t,o_{t+1}) \\
 d_{t+1} &= D(g,z_{t+1},o_{t+1})
 \end{aligned}
 $$
 
 The first two lines describe the world. $P$ describes how it changes, including changes outside the runtime. $O$ describes what evidence comes back. A job can finish while its score is still on the way.
 
-The last two lines describe the runtime. $U$ updates the ledger using the proposal, the execution record $e_t$, and any new observation. The record can say “timed out” even when the outcome is still unknown.
+The last two lines describe the runtime. $U$ updates the ledger using the proposal, its execution record $\mathrm{rec}_t$, and any new observation $o_{t+1}$. If a later status check reports that job #42 is running, the runtime can add that observation to the ledger while preserving the original timeout.
 
 $D$ decides whether to continue. Record why the run ended. A deadline can end a run while work is still unfinished. A hard stop prevents the model from taking another turn. The executor still has to account for jobs already running.
 

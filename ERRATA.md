@@ -2,6 +2,10 @@
 
 Record corrections to published material here, newest first. Include the date, page and section, prior claim, corrected claim, and supporting source or reproducible check.
 
+## 2026-11-19 · Block 01, action sets and execution record in §4
+
+The equations used two action sets with little explanation and denoted the execution record by $e_t$. The revised section defines the choices offered to the model and the requests permitted for the run before either set appears in an equation. The ledger update now uses $\mathrm{rec}_t$ for the record of one proposal. The lost-reply example shows how an approved request can time out at the caller even when the scheduler starts the job. [A formal model of the turn](https://hieutrungle.github.io/agentic-systems-notes/curriculum/01-agent-fundamentals.html#a-formal-model-of-the-turn)
+
 ## 2026-11-19 · Block 01, Figure 2
 
 The opening card labeled the goal, ledger, and observation as initial inputs without identifying each value. The first card now states the goal. Step forward once to see the initial ledger and the evaluator’s baseline score of 0.842, each paired with its symbol. After job #42 completes, the feedback step likewise distinguishes its reported score and cost from the updated ledger. [Figure 2 and text walkthrough](https://hieutrungle.github.io/agentic-systems-notes/curriculum/01-agent-fundamentals.html#fig-agent-runtime)
